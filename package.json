@@ -1,0 +1,26 @@
+{
+  "name": "circuitous",
+  "version": "1.0.0",
+  "description": "Collaborative high-level digital circuit editor.",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/parasyte/circuitous.git"
+  },
+  "author": "Jay Oster <jay@kodewerx.org>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/parasyte/circuitous/issues"
+  },
+  "homepage": "https://github.com/parasyte/circuitous#readme",
+  "devDependencies": {
+    "@types/chai": "^4.3.3",
+    "@types/mocha": "^9.1.1",
+    "chai": "^4.3.6",
+    "mocha": "^10.0.0"
+  }
+}

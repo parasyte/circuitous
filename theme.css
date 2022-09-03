@@ -1,0 +1,21 @@
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background-color: #333;
+    --text-color: #ccc;
+    --border-color: #111;
+    --accent-color: #06c;
+    --font-face: sans-serif;
+    --font-size: 16pt;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --background-color: #eee;
+    --text-color: #333;
+    --border-color: #777;
+    --accent-color: slateblue;
+    --font-face: sans-serif;
+    --font-size: 16pt;
+  }
+}

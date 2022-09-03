@@ -1,0 +1,44 @@
+{
+  "name": "Circuitous",
+  "short_name": "Circuitous",
+  "description": "Collaborative high-level digital circuit editor.",
+  "categories": ["business", "development", "education", "utilities"],
+  "start_url": "./index.html",
+  "scope": "./index.html",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#333",
+  "theme_color": "#06c",
+  "icons": [{
+    "src": "img/icon16.png",
+    "sizes": "16x16",
+    "type": "image/png"
+  }, {
+    "src": "img/icon32.png",
+    "sizes": "32x32",
+    "type": "image/png"
+  }, {
+    "src": "img/icon64.png",
+    "sizes": "64x64",
+    "type": "image/png"
+  }, {
+    "src": "img/icon180.png",
+    "sizes": "180x180",
+    "type": "image/png"
+  }, {
+    "src": "img/icon192.png",
+    "sizes": "192x192",
+    "type": "image/png"
+  }, {
+    "src": "img/icon512.png",
+    "sizes": "512x512",
+    "type": "image/png"
+  }],
+  "screenshots": [{
+    "src": "screenshots/dark.png",
+    "sizes": "550x600"
+  }, {
+    "src": "screenshots/light.png",
+    "sizes": "550x600"
+  }]
+}
