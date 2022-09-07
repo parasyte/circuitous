@@ -105,7 +105,7 @@ export class Board {
     this.#ctx.fillRect(0, GRID_SIZE * 6.5, width, GRID_SIZE);
 
     // Inner wires
-    this.#ctx.strokeStyle = 'rgba(0, 128, 192, 0.2)';
+    this.#ctx.strokeStyle = 'rgba(0, 32, 64, 0.2)';
     this.#ctx.lineWidth = HOLE_SIZE * 1.5;
     for (const j of [1, 8]) {
       for (let i = 0; i < this.#width; i++) {
@@ -141,12 +141,12 @@ export class Board {
     }
 
     // Column labels
+    this.#ctx.textAlign = 'center';
+    this.#ctx.textBaseline = 'middle';
     for (const j of [1, this.#height + 4]) {
       for (let i = 0; i <= this.#width; i += 5) {
-        // TODO: Use text alignment properties
-        const offset = (i >= 100) ? -2 : (i >= 10) ? 3 : 6;
-        const x = i * GRID_SIZE + offset;
-        const y = j * GRID_SIZE - 6;
+        const x = i * GRID_SIZE + HALF_GRID;
+        const y = j * GRID_SIZE - HALF_GRID;
         if (i) {
           this.#ctx.fillText(`${i}`, x, y);
         } else {
@@ -163,9 +163,8 @@ export class Board {
       }
 
       for (const i of [0, this.#width + 1]) {
-        // TODO: Use text alignment properties
-        const x = i * GRID_SIZE + 6;
-        const y = (j + 2) * GRID_SIZE - 6;
+        const x = i * GRID_SIZE + HALF_GRID;
+        const y = (j + 2) * GRID_SIZE - HALF_GRID;
         this.#ctx.fillText(String.fromCharCode(ch + "a".charCodeAt(0)), x, y);
       }
     }

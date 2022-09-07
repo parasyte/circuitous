@@ -76,7 +76,7 @@ export class PowerRail {
     // Edge separators
     ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
     ctx.fillRect(0, 0, this.#board_width, 2);
-    ctx.fillRect(0, RAIL_HEIGHT, this.#board_width, 2);
+    ctx.fillRect(0, RAIL_HEIGHT - 2, this.#board_width, 2);
 
     // Positive label
     ctx.lineWidth = 2;
