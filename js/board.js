@@ -147,7 +147,7 @@ export class Board {
         if (i) {
           this.#ctx.fillText(`${i}`, x, y);
         } else {
-          this.#ctx.fillText(`1`, x + GRID_SIZE, y);
+          this.#ctx.fillText('1', x + GRID_SIZE, y);
         }
       }
     }
@@ -162,7 +162,7 @@ export class Board {
       for (const i of [0, this.#width + 1]) {
         const x = i * GRID_SIZE + HALF_GRID;
         const y = (j + 2) * GRID_SIZE - HALF_GRID;
-        this.#ctx.fillText(String.fromCharCode(ch + "a".charCodeAt(0)), x, y);
+        this.#ctx.fillText(String.fromCharCode(ch + 'a'.charCodeAt(0)), x, y);
       }
     }
 
