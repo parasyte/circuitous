@@ -62,10 +62,10 @@ export class PowerRail {
 
   /**
    * @arg {CanvasRenderingContext2D} ctx - Canvas context.
-   * @arg {DOMHighResTimeStamp} delta - Time delta for animations.
-   * @arg {DrawOptions} options - Drawing options.
+   * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
+   * @arg {DrawOptions} _options - Drawing options.
    */
-  draw(ctx, delta, options) {
+  draw(ctx, _delta, _options) {
     ctx.translate(0, this.#top ? -RAIL_HEIGHT : 0);
 
     // Base
@@ -175,11 +175,11 @@ export class Part {
   }
 
   /**
-   * @arg {CanvasRenderingContext2D} ctx - Canvas context.
-   * @arg {DOMHighResTimeStamp} delta - Time delta for animations.
-   * @arg {DrawOptions} options - Drawing options.
+   * @arg {CanvasRenderingContext2D} _ctx - Canvas context.
+   * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
+   * @arg {DrawOptions} _options - Drawing options.
    */
-  draw(ctx, delta, options) {
+  draw(_ctx, _delta, _options) {
     throw new Error('TODO');
   }
 }
@@ -231,10 +231,10 @@ export class Wire extends Buffer {
 
   /**
    * @arg {CanvasRenderingContext2D} ctx - Canvas context.
-   * @arg {DOMHighResTimeStamp} delta - Time delta for animations.
+   * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
    * @arg {DrawOptions} options - Drawing options.
    */
-  draw(ctx, delta, options) {
+  draw(ctx, _delta, options) {
     ctx.save();
     ctx.strokeStyle = this.#color;
     ctx.lineWidth = 10;
@@ -255,11 +255,11 @@ export class Wire extends Buffer {
 
 export class Led extends Buffer {
   /**
-   * @arg {CanvasRenderingContext2D} ctx - Canvas context.
-   * @arg {DOMHighResTimeStamp} delta - Time delta for animations.
-   * @arg {DrawOptions} options - Drawing options.
+   * @arg {CanvasRenderingContext2D} _ctx - Canvas context.
+   * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
+   * @arg {DrawOptions} _options - Drawing options.
    */
-  draw(ctx, delta, options) {
+  draw(_ctx, _delta, _options) {
     throw new Error('TODO');
   }
 }
