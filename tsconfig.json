@@ -6,6 +6,8 @@
     "strict": true,
     "module": "es2022",
     "target": "es2022",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
   },
   "include": ["**/*.js"],
   "exclude": ["node_modules"],
