@@ -7,5 +7,3 @@ export function $(selector) {
 export function $$(selector) {
   return document.querySelectorAll(selector);
 }
-
-export const TAU = Math.PI * 2;

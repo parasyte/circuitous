@@ -1,10 +1,7 @@
+import { GRID_SIZE, HALF_GRID, HOLE_SIZE, TAU } from './consts.js';
 import { Graph } from './graph.js';
 import { DrawOptions, Part, PowerRail, Wire } from './parts.js';
-import { $, TAU } from './utils.js';
-
-export const GRID_SIZE = 18;
-export const HALF_GRID = GRID_SIZE / 2;
-export const HOLE_SIZE = GRID_SIZE / 6;
+import { $ } from './utils.js';
 
 export class Board {
   /** @type {CanvasRenderingContext2D} */
