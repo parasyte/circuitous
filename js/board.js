@@ -112,10 +112,9 @@ export class Board {
       const x = (i % this.#width + 1) * GRID_SIZE + HALF_GRID;
       const y = (Math.floor(i / this.#width) * (this.#height / 2 + 2) + 1) * GRID_SIZE + HALF_GRID;
 
-      this.#ctx.save();
       this.#ctx.translate(x, y);
       trace.draw(this.#ctx, delta, new DrawOptions([], []));
-      this.#ctx.restore();
+      this.#ctx.translate(-x, -y);
     }
 
     // Holes
@@ -168,10 +167,11 @@ export class Board {
 
     // Power rails
     for (const [i, rail] of this.#power.entries()) {
-      this.#ctx.save();
-      this.#ctx.translate(0, i * (this.#height + 4) * GRID_SIZE);
+      const y = i * (this.#height + 4) * GRID_SIZE;
+
+      this.#ctx.translate(0, y);
       rail.draw(this.#ctx, delta, new DrawOptions([], []));
-      this.#ctx.restore();
+      this.#ctx.translate(0, -y);
     }
 
     // Parts
@@ -191,10 +191,9 @@ export class Board {
         const x = (i + 1) * GRID_SIZE + HALF_GRID;
         const y = (j + 1) * GRID_SIZE + HALF_GRID;
 
-        this.#ctx.save();
         this.#ctx.translate(x, y);
         part.draw(this.#ctx, delta, new DrawOptions([], []));
-        this.#ctx.restore();
+        this.#ctx.translate(-x, -y);
       }
     }
   }
