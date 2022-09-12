@@ -13,7 +13,7 @@ export class Board {
   /** @type {Number} */
   #height;
 
-  /** @type {(Part | undefined)[][]} */
+  /** @type {Part[][]} */
   #parts;
 
   /** @type {Trace[]} */
@@ -173,7 +173,25 @@ export class Board {
       this.#ctx.restore();
     }
 
-    // TODO: Parts
+    // Parts
+    for (let [j, row] of this.#parts.entries()) {
+      // Skip center two rows
+      if (j === this.#height / 2) {
+        j += 2;
+      }
+
+      for (const [i, part] of row.entries()) {
+        if (part) {
+          const x = (i + 1) * GRID_SIZE + HALF_GRID;
+          const y = (j + 1) * GRID_SIZE + HALF_GRID;
+
+          this.#ctx.save();
+          this.#ctx.translate(x, y);
+          part.draw(this.#ctx, delta, new DrawOptions([], []));
+          this.#ctx.restore();
+        }
+      }
+    }
   }
 
   /** @arg {DOMHighResTimeStamp} ts */
