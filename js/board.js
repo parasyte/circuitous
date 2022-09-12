@@ -22,7 +22,7 @@ export class Board {
   /** @type {[PowerRail, PowerRail]} */
   #power;
 
-  /** @type {Graph<Part, Wire>} */
+  /** @type {Graph<Part, Trace>} */
   #graph;
 
   /** @type {Boolean} */

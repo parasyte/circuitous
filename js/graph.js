@@ -247,7 +247,7 @@ export class LinkIterator {
 
         return { done: true, value: undefined };
       }
-    }
+    };
   }
 
   /**
