@@ -175,6 +175,7 @@ export class Board {
     }
 
     // Parts
+    const seen = new Set();
     for (let [j, row] of this.#parts.entries()) {
       // Skip center two rows
       if (j === this.#height / 2) {
@@ -182,15 +183,18 @@ export class Board {
       }
 
       for (const [i, part] of row.entries()) {
-        if (part) {
-          const x = (i + 1) * GRID_SIZE + HALF_GRID;
-          const y = (j + 1) * GRID_SIZE + HALF_GRID;
-
-          this.#ctx.save();
-          this.#ctx.translate(x, y);
-          part.draw(this.#ctx, delta, new DrawOptions([], []));
-          this.#ctx.restore();
+        if (!part || seen.has(part)) {
+          continue;
         }
+        seen.add(part);
+
+        const x = (i + 1) * GRID_SIZE + HALF_GRID;
+        const y = (j + 1) * GRID_SIZE + HALF_GRID;
+
+        this.#ctx.save();
+        this.#ctx.translate(x, y);
+        part.draw(this.#ctx, delta, new DrawOptions([], []));
+        this.#ctx.restore();
       }
     }
   }
