@@ -1,6 +1,6 @@
 import { GRID_SIZE, HALF_GRID, HOLE_SIZE, TAU } from './consts.js';
 import { Graph } from './graph.js';
-import { DrawOptions, Part, PowerRail, Wire } from './parts.js';
+import { DrawOptions, Part, PowerRail, Trace, Wire } from './parts.js';
 import { $ } from './utils.js';
 
 export class Board {
@@ -15,6 +15,9 @@ export class Board {
 
   /** @type {(Part | undefined)[][]} */
   #parts;
+
+  /** @type {Trace[]} */
+  #traces;
 
   /** @type {[PowerRail, PowerRail]} */
   #power;
@@ -37,7 +40,9 @@ export class Board {
     this.#width = width || 60;
     this.#height = height || 10;
 
-    this.#parts = Array.from(new Array(height), () => new Array(width));
+    this.#parts = Array.from(new Array(this.#height), () => new Array(this.#width));
+    this.#traces = Array.from(new Array(this.#width * 2), () => new Trace('rgba(0, 32, 64, 0.2)'));
+
     const power_width = Math.floor(this.#width / 6 * 5);
     this.#power = [
       new PowerRail(power_width, (this.#width + 2) * GRID_SIZE, true),
@@ -101,21 +106,15 @@ export class Board {
     this.#ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
     this.#ctx.fillRect(0, GRID_SIZE * 6.5, width, GRID_SIZE);
 
-    // Inner wires
-    this.#ctx.strokeStyle = 'rgba(0, 32, 64, 0.2)';
-    this.#ctx.lineWidth = HOLE_SIZE * 1.5;
-    for (const j of [1, 8]) {
-      for (let i = 0; i < this.#width; i++) {
-        const x = (i + 1) * GRID_SIZE + HALF_GRID;
-        const y1 = j * GRID_SIZE + HALF_GRID;
-        const y2 = y1 + (this.#height / 2 - 1) * GRID_SIZE;
+    // Inner traces
+    for (const [i, trace] of this.#traces.entries()) {
+      const x = (i % this.#width + 1) * GRID_SIZE + HALF_GRID;
+      const y = (Math.floor(i / this.#width) * (this.#height / 2 + 2) + 1) * GRID_SIZE + HALF_GRID;
 
-        this.#ctx.beginPath();
-        this.#ctx.moveTo(x, y1);
-        this.#ctx.lineTo(x, y2);
-        this.#ctx.closePath();
-        this.#ctx.stroke();
-      }
+      this.#ctx.save();
+      this.#ctx.translate(x, y);
+      trace.draw(this.#ctx, delta, new DrawOptions([], []));
+      this.#ctx.restore();
     }
 
     // Holes
@@ -127,11 +126,11 @@ export class Board {
       }
 
       for (let i = 0; i < this.#width; i++) {
-        const x = (i + 1) * GRID_SIZE;
-        const y = (j + 1) * GRID_SIZE;
+        const x = (i + 1) * GRID_SIZE + HALF_GRID;
+        const y = (j + 1) * GRID_SIZE + HALF_GRID;
 
         this.#ctx.beginPath();
-        this.#ctx.arc(x + HALF_GRID, y + HALF_GRID, HOLE_SIZE, 0, TAU);
+        this.#ctx.arc(x, y, HOLE_SIZE, 0, TAU);
         this.#ctx.closePath();
         this.#ctx.fill();
       }
@@ -173,6 +172,8 @@ export class Board {
       rail.draw(this.#ctx, delta, new DrawOptions([], []));
       this.#ctx.restore();
     }
+
+    // TODO: Parts
   }
 
   /** @arg {DOMHighResTimeStamp} ts */

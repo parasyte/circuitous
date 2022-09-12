@@ -1,4 +1,4 @@
-import { GRID_SIZE, HOLE_SIZE, TAU } from './consts.js';
+import { GRID_SIZE, HALF_GRID, HOLE_SIZE, TAU } from './consts.js';
 
 const RAIL_HEIGHT = 55;
 
@@ -121,7 +121,7 @@ export class PowerRail {
 
     ctx.stroke();
 
-    // Positive inner wire
+    // Positive inner trace
     ctx.strokeStyle = 'rgba(192, 0, 0, 0.2)';
     ctx.lineWidth = HOLE_SIZE * 1.5;
     {
@@ -136,7 +136,7 @@ export class PowerRail {
       ctx.stroke();
     }
 
-    // Negative inner wire
+    // Negative inner trace
     ctx.strokeStyle = 'rgba(0, 0, 192, 0.2)';
     ctx.lineWidth = HOLE_SIZE * 1.5;
     {
@@ -165,6 +165,36 @@ export class PowerRail {
         ctx.fill();
       }
     }
+  }
+}
+
+export class Trace {
+  /** @type {String} */
+  #color;
+
+  /**
+   * @arg {String} color - Wire color.
+   */
+  constructor(color) {
+    this.#color = color;
+  }
+
+  /**
+   * @arg {CanvasRenderingContext2D} ctx - Canvas context.
+   * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
+   * @arg {DrawOptions} _options - Drawing options.
+   */
+  draw(ctx, _delta, _options) {
+    ctx.strokeStyle = this.#color;
+    ctx.lineWidth = HOLE_SIZE * 1.5;
+
+    const y = 4 * GRID_SIZE;
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, y);
+    ctx.closePath();
+    ctx.stroke();
   }
 }
 
