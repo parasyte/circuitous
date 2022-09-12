@@ -235,14 +235,19 @@ export class LinkIterator {
     this.#id = id;
   }
 
-  /** @return {IteratorResult<Link<L>>} */
-  next() {
-    const next = this.#iter.next();
-    if (next.done || this.predicate(next.value, this.#id)) {
-      return next;
-    }
+  [Symbol.iterator]() {
+    const self = this;
+    return {
+      /** @return {IteratorResult<Link<L>>} */
+      next() {
+        const next = self.#iter.next();
+        if (next.done || self.predicate(next.value, self.#id)) {
+          return next;
+        }
 
-    return { done: true, value: undefined };
+        return { done: true, value: undefined };
+      }
+    }
   }
 
   /**
