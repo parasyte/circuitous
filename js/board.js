@@ -139,10 +139,10 @@ export class Board {
     // Column labels
     this.#ctx.textAlign = 'center';
     this.#ctx.textBaseline = 'middle';
-    for (const j of [1, this.#height + 4]) {
+    for (const j of [0, this.#height + 3]) {
       for (let i = 0; i <= this.#width; i += 5) {
         const x = i * GRID_SIZE + HALF_GRID;
-        const y = j * GRID_SIZE - HALF_GRID;
+        const y = j * GRID_SIZE + HALF_GRID;
         if (i) {
           this.#ctx.fillText(`${i}`, x, y);
         } else {
@@ -160,7 +160,7 @@ export class Board {
 
       for (const i of [0, this.#width + 1]) {
         const x = i * GRID_SIZE + HALF_GRID;
-        const y = (j + 2) * GRID_SIZE - HALF_GRID;
+        const y = (j + 1) * GRID_SIZE + HALF_GRID;
         this.#ctx.fillText(String.fromCharCode(ch + 'a'.charCodeAt(0)), x, y);
       }
     }
