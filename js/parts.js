@@ -66,6 +66,7 @@ export class PowerRail {
    * @arg {DrawOptions} _options - Drawing options.
    */
   draw(ctx, _delta, _options) {
+    ctx.save();
     ctx.translate(0, this.#top ? -RAIL_HEIGHT : 0);
 
     // Base
@@ -165,6 +166,8 @@ export class PowerRail {
         ctx.fill();
       }
     }
+
+    ctx.restore();
   }
 }
 
