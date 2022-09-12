@@ -219,7 +219,7 @@ export class Link {
 /**
  * @template L
  */
-export class InputIterator {
+export class LinkIterator {
   /** @type {IterableIterator<Link<L>>} */
   #iter;
 
@@ -238,40 +238,49 @@ export class InputIterator {
   /** @return {IteratorResult<Link<L>>} */
   next() {
     const next = this.#iter.next();
-    if (next.done || next.value.to === this.#id) {
+    if (next.done || this.predicate(next.value, this.#id)) {
       return next;
     }
 
     return { done: true, value: undefined };
+  }
+
+  /**
+   * @arg {Link<L>} _next - Link item to test.
+   * @arg {String} _id - Link identifier.
+   * @return {Boolean}
+   */
+  predicate(_next, _id) {
+    throw new Error('Base class must be extended with predicate overload');
   }
 }
 
 /**
  * @template L
+ * @extends LinkIterator<L>
  */
-export class OutputIterator {
-  /** @type {IterableIterator<Link<L>>} */
-  #iter;
-
-  /** @type {String} */
-  #id;
-
+export class InputIterator extends LinkIterator {
   /**
-   * @arg {IterableIterator<Link<L>>} iter - Parent iterator.
-   * @arg {String} id - Search predicate.
+   * @arg {Link<L>} next - Link item to test.
+   * @arg {String} id - Link identifier.
+   * @return {Boolean}
    */
-  constructor(iter, id) {
-    this.#iter = iter;
-    this.#id = id;
+  predicate(next, id) {
+    return next.to === id;
   }
+}
 
-  /** @return {IteratorResult<Link<L>>} */
-  next() {
-    const next = this.#iter.next();
-    if (next.done || next.value.from === this.#id) {
-      return next;
-    }
-
-    return { done: true, value: undefined };
+/**
+ * @template L
+ * @extends LinkIterator<L>
+ */
+export class OutputIterator extends LinkIterator {
+  /**
+   * @arg {Link<L>} next - Link item to test.
+   * @arg {String} id - Link identifier.
+   * @return {Boolean}
+   */
+  predicate(next, id) {
+    return next.from === id;
   }
 }
