@@ -1,4 +1,4 @@
-import { GRID_SIZE, HALF_GRID, HOLE_SIZE, TAU } from './consts.js';
+import { GRID_SIZE, HOLE_SIZE, TAU } from './consts.js';
 
 const RAIL_HEIGHT = 55;
 

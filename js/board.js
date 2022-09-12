@@ -1,7 +1,7 @@
 import { GRID_SIZE, HALF_GRID, HOLE_SIZE, TAU } from './consts.js';
 import { Graph } from './graph.js';
 import { DrawOptions, Part, PowerRail, Trace, Wire } from './parts.js';
-import { $ } from './utils.js';
+import { $, Debounce } from './utils.js';
 
 export class Board {
   /** @type {CanvasRenderingContext2D} */
@@ -62,7 +62,8 @@ export class Board {
       throw new Error('Invalid canvas ID');
     }
 
-    window.addEventListener('resize', this.#resize.bind(this));
+    const debounce_resize = new Debounce(this.#resize.bind(this), 100);
+    window.addEventListener('resize', debounce_resize.call.bind(debounce_resize));
     this.#resize();
 
     this.#repaint = true;
