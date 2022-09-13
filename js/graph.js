@@ -240,9 +240,12 @@ export class LinkIterator {
     return {
       /** @return {IteratorResult<Link<L>>} */
       next() {
-        const next = self.#iter.next();
-        if (next.done || self.predicate(next.value, self.#id)) {
-          return next;
+        let next = self.#iter.next();
+        while (!next.done) {
+          if (self.predicate(next.value, self.#id)) {
+            return next;
+          }
+          next = self.#iter.next();
         }
 
         return { done: true, value: undefined };
