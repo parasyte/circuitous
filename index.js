@@ -1,3 +1,3 @@
-import { Board } from './js/board.js';
+import { Circuitous } from './js/circuitous.js';
 
-new Board('#board');
+new Circuitous('#circuitous');
