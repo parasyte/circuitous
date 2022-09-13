@@ -63,7 +63,7 @@ export class PowerRail {
   /**
    * @arg {CanvasRenderingContext2D} ctx - Canvas context.
    * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
-   * @arg {DrawOptions} _options - Drawing options.
+   * @arg {DrawOptions} [_options] - Drawing options.
    */
   draw(ctx, _delta, _options) {
     ctx.save();
@@ -185,7 +185,7 @@ export class Trace {
   /**
    * @arg {CanvasRenderingContext2D} ctx - Canvas context.
    * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
-   * @arg {DrawOptions} _options - Drawing options.
+   * @arg {DrawOptions} [_options] - Drawing options.
    */
   draw(ctx, _delta, _options) {
     ctx.strokeStyle = this.#color;
@@ -210,7 +210,7 @@ export class Part {
   /**
    * @arg {CanvasRenderingContext2D} _ctx - Canvas context.
    * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
-   * @arg {DrawOptions} _options - Drawing options.
+   * @arg {DrawOptions} [_options] - Drawing options.
    */
   draw(_ctx, _delta, _options) {
     throw new Error('TODO');
@@ -290,7 +290,7 @@ export class Led extends Buffer {
   /**
    * @arg {CanvasRenderingContext2D} _ctx - Canvas context.
    * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
-   * @arg {DrawOptions} _options - Drawing options.
+   * @arg {DrawOptions} [_options] - Drawing options.
    */
   draw(_ctx, _delta, _options) {
     throw new Error('TODO');

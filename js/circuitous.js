@@ -1,6 +1,7 @@
 import { Board } from './board.js';
 import { GRID_SIZE } from './consts.js';
 import { Graph } from './graph.js';
+import { Part, Trace } from './parts.js';
 import { $, Debounce } from './utils.js';
 
 export class Circuitous {

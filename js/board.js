@@ -1,5 +1,5 @@
 import { GRID_SIZE, HALF_GRID, HOLE_SIZE, TAU } from './consts.js';
-import { DrawOptions, Part, PowerRail, Trace } from './parts.js';
+import { Part, PowerRail, Trace } from './parts.js';
 
 export class Board {
   /** @type {Number} */
@@ -57,7 +57,7 @@ export class Board {
       const y = (Math.floor(i / this.width) * (this.height / 2 + 2) + 1) * GRID_SIZE + HALF_GRID;
 
       ctx.translate(x, y);
-      trace.draw(ctx, delta, new DrawOptions([], []));
+      trace.draw(ctx, delta);
       ctx.translate(-x, -y);
     }
 
@@ -114,7 +114,7 @@ export class Board {
       const y = i * (this.height + 4) * GRID_SIZE;
 
       ctx.translate(0, y);
-      rail.draw(ctx, delta, new DrawOptions([], []));
+      rail.draw(ctx, delta);
       ctx.translate(0, -y);
     }
 
@@ -136,7 +136,7 @@ export class Board {
         const y = (j + 1) * GRID_SIZE + HALF_GRID;
 
         ctx.translate(x, y);
-        part.draw(ctx, delta, new DrawOptions([], []));
+        part.draw(ctx, delta);
         ctx.translate(-x, -y);
       }
     }
