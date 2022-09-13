@@ -1,4 +1,4 @@
-import { GRID_SIZE, HOLE_SIZE } from './consts.js';
+import { GRID_SIZE, HALF_GRID, HOLE_SIZE, QUART_GRID, TAU } from './consts.js';
 
 export class DrawOptions {
   /** @type {DOMPoint[]} */
@@ -160,6 +160,49 @@ export class Inverter extends Buffer {
   /** @return {Number} */
   output() {
     return super.output() ? 0 : 1;
+  }
+
+  /**
+   * @arg {CanvasRenderingContext2D} ctx - Canvas context.
+   * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
+   * @arg {DrawOptions} [_options] - Drawing options.
+   */
+  draw(ctx, _delta, _options) {
+    // Body background
+    ctx.fillStyle = 'rgb(24, 24, 24)';
+    ctx.fillRect(0, 0, GRID_SIZE * 2, GRID_SIZE);
+
+    // Shadow
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgb(8, 8, 8)';
+    ctx.beginPath();
+    ctx.moveTo(GRID_SIZE * 2, 0);
+    ctx.lineTo(GRID_SIZE * 2, GRID_SIZE);
+    ctx.lineTo(0, GRID_SIZE);
+    ctx.stroke();
+
+    // Highlight
+    ctx.strokeStyle = 'rgb(64, 64, 64)';
+    ctx.beginPath();
+    ctx.moveTo(0, GRID_SIZE);
+    ctx.lineTo(0, 0);
+    ctx.lineTo(GRID_SIZE * 2, 0);
+    ctx.stroke();
+
+    // Inverter symbol, triangle
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgb(160, 160, 160)';
+    ctx.beginPath();
+    ctx.moveTo(HALF_GRID, QUART_GRID);
+    ctx.lineTo(GRID_SIZE + QUART_GRID, HALF_GRID);
+    ctx.lineTo(HALF_GRID, HALF_GRID + QUART_GRID);
+    ctx.closePath();
+    ctx.stroke();
+
+    // Inverter symbol, circle
+    ctx.beginPath();
+    ctx.arc(GRID_SIZE + QUART_GRID + HOLE_SIZE, HALF_GRID, HOLE_SIZE, 0, TAU);
+    ctx.stroke();
   }
 }
 
