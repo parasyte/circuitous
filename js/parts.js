@@ -1,4 +1,5 @@
-import { GRID_SIZE, HALF_GRID, HOLE_SIZE, QUART_GRID, TAU } from './consts.js';
+import { GRID_SIZE, HALF_GRID, HOLE_SIZE, QUART_GRID } from './consts.js';
+import * as icons from './icons.js';
 
 export class DrawOptions {
   /** @type {DOMPoint[]} */
@@ -63,6 +64,11 @@ export class Part {
     throw new Error('Attempt to output high-Z');
   }
 
+  /** @return {String} */
+  get name() {
+    throw new Error('Unnamed part');
+  }
+
   /**
    * @arg {CanvasRenderingContext2D} _ctx - Canvas context.
    * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
@@ -78,12 +84,22 @@ export class Low extends Part {
   output() {
     return 0;
   }
+
+  /** @return {String} */
+  get name() {
+    return 'Low';
+  }
 }
 
 export class High extends Part {
   /** @return {Number} */
   output() {
     return 1;
+  }
+
+  /** @return {String} */
+  get name() {
+    return 'High';
   }
 }
 
@@ -100,6 +116,11 @@ export class Buffer extends Part {
   /** @return {Number} */
   output() {
     return this.#input.output();
+  }
+
+  /** @return {String} */
+  get name() {
+    return 'Buffer';
   }
 
   /** @arg {Part} input - New input. */
@@ -119,6 +140,11 @@ export class Wire extends Buffer {
   constructor(input, color) {
     super(input);
     this.#color = color;
+  }
+
+  /** @return {String} */
+  get name() {
+    return 'Wire';
   }
 
   /**
@@ -146,6 +172,11 @@ export class Wire extends Buffer {
 }
 
 export class Led extends Buffer {
+  /** @return {String} */
+  get name() {
+    return 'LED';
+  }
+
   /**
    * @arg {CanvasRenderingContext2D} _ctx - Canvas context.
    * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
@@ -162,47 +193,37 @@ export class Inverter extends Buffer {
     return super.output() ? 0 : 1;
   }
 
+  /** @return {String} */
+  get name() {
+    return 'Inverter';
+  }
+
   /**
    * @arg {CanvasRenderingContext2D} ctx - Canvas context.
    * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
    * @arg {DrawOptions} [_options] - Drawing options.
    */
   draw(ctx, _delta, _options) {
-    // Body background
-    ctx.fillStyle = 'rgb(24, 24, 24)';
-    ctx.fillRect(0, 0, GRID_SIZE * 2, GRID_SIZE);
+    const width = GRID_SIZE / 3 * 2;
+    const height = GRID_SIZE / 3 * 2;
 
-    // Shadow
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = 'rgb(8, 8, 8)';
-    ctx.beginPath();
-    ctx.moveTo(GRID_SIZE * 2, 0);
-    ctx.lineTo(GRID_SIZE * 2, GRID_SIZE);
-    ctx.lineTo(0, GRID_SIZE);
-    ctx.stroke();
+    ctx.save();
 
-    // Highlight
-    ctx.strokeStyle = 'rgb(64, 64, 64)';
-    ctx.beginPath();
-    ctx.moveTo(0, GRID_SIZE);
-    ctx.lineTo(0, 0);
-    ctx.lineTo(GRID_SIZE * 2, 0);
-    ctx.stroke();
+    ctx.translate(GRID_SIZE, HALF_GRID);
+    icons.body(ctx, GRID_SIZE * 2, GRID_SIZE);
 
-    // Inverter symbol, triangle
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = 'rgb(160, 160, 160)';
-    ctx.beginPath();
-    ctx.moveTo(HALF_GRID, QUART_GRID);
-    ctx.lineTo(GRID_SIZE + QUART_GRID, HALF_GRID);
-    ctx.lineTo(HALF_GRID, HALF_GRID + QUART_GRID);
-    ctx.closePath();
-    ctx.stroke();
+    icons.triangle(ctx, width, height);
 
-    // Inverter symbol, circle
-    ctx.beginPath();
-    ctx.arc(GRID_SIZE + QUART_GRID + HOLE_SIZE, HALF_GRID, HOLE_SIZE, 0, TAU);
-    ctx.stroke();
+    ctx.translate(-width / 2, 0);
+    icons.input(ctx, QUART_GRID);
+
+    ctx.translate(width + GRID_SIZE * 0.1, 0);
+    icons.circle(ctx, GRID_SIZE * 0.1);
+
+    ctx.translate(GRID_SIZE * 0.1, 0);
+    icons.output(ctx, QUART_GRID);
+
+    ctx.restore();
   }
 }
 
@@ -239,6 +260,39 @@ export class And extends Gate {
   output() {
     return this.a.output() & this.b.output();
   }
+
+  /** @return {String} */
+  get name() {
+    return 'And';
+  }
+
+  /**
+   * @arg {CanvasRenderingContext2D} ctx - Canvas context.
+   * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
+   * @arg {DrawOptions} [_options] - Drawing options.
+   */
+  draw(ctx, _delta, _options) {
+    const width = GRID_SIZE / 3 * 2;
+    const height = GRID_SIZE / 3 * 2;
+
+    ctx.save();
+
+    ctx.translate(GRID_SIZE * 1.5, HALF_GRID);
+    icons.body(ctx, GRID_SIZE * 3, GRID_SIZE);
+
+    icons.roundBox(ctx, width, height);
+
+    ctx.translate(-width / 2, -height / 4);
+    icons.input(ctx, QUART_GRID);
+
+    ctx.translate(0, height / 2);
+    icons.input(ctx, QUART_GRID);
+
+    ctx.translate(width, -height / 4);
+    icons.output(ctx, QUART_GRID);
+
+    ctx.restore();
+  }
 }
 
 export class Or extends Gate {
@@ -246,12 +300,50 @@ export class Or extends Gate {
   output() {
     return this.a.output() | this.b.output();
   }
+
+  /** @return {String} */
+  get name() {
+    return 'Or';
+  }
+
+  /**
+   * @arg {CanvasRenderingContext2D} ctx - Canvas context.
+   * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
+   * @arg {DrawOptions} [_options] - Drawing options.
+   */
+  draw(ctx, _delta, _options) {
+    const width = GRID_SIZE / 3 * 2;
+    const height = GRID_SIZE / 3 * 2;
+
+    ctx.save();
+
+    ctx.translate(GRID_SIZE * 1.5, HALF_GRID);
+    icons.body(ctx, GRID_SIZE * 3, GRID_SIZE);
+
+    icons.bullet(ctx, width, height);
+
+    ctx.translate(-width / 2, -height / 4);
+    icons.input(ctx, QUART_GRID);
+
+    ctx.translate(0, height / 2);
+    icons.input(ctx, QUART_GRID);
+
+    ctx.translate(width, -height / 4);
+    icons.output(ctx, QUART_GRID);
+
+    ctx.restore();
+  }
 }
 
 export class Xor extends Gate {
   /** @return {Number} */
   output() {
     return this.a.output() ^ this.b.output();
+  }
+
+  /** @return {String} */
+  get name() {
+    return 'Xor';
   }
 }
 
@@ -281,6 +373,42 @@ export class Nand extends InvertedGate {
   output() {
     return this.input.output();
   }
+
+  /** @return {String} */
+  get name() {
+    return 'Nand';
+  }
+
+  /**
+   * @arg {CanvasRenderingContext2D} ctx - Canvas context.
+   * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
+   * @arg {DrawOptions} [_options] - Drawing options.
+   */
+  draw(ctx, _delta, _options) {
+    const width = GRID_SIZE / 3 * 2;
+    const height = GRID_SIZE / 3 * 2;
+
+    ctx.save();
+
+    ctx.translate(GRID_SIZE * 1.5, HALF_GRID);
+    icons.body(ctx, GRID_SIZE * 3, GRID_SIZE);
+
+    icons.roundBox(ctx, width, height);
+
+    ctx.translate(-width / 2, -height / 4);
+    icons.input(ctx, QUART_GRID);
+
+    ctx.translate(0, height / 2);
+    icons.input(ctx, QUART_GRID);
+
+    ctx.translate(width + GRID_SIZE * 0.1, -height / 4);
+    icons.circle(ctx, GRID_SIZE * 0.1);
+
+    ctx.translate(GRID_SIZE * 0.1, 0);
+    icons.output(ctx, QUART_GRID);
+
+    ctx.restore();
+  }
 }
 
 export class Nor extends InvertedGate {
@@ -296,6 +424,42 @@ export class Nor extends InvertedGate {
   output() {
     return this.input.output();
   }
+
+  /** @return {String} */
+  get name() {
+    return 'Nor';
+  }
+
+  /**
+   * @arg {CanvasRenderingContext2D} ctx - Canvas context.
+   * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
+   * @arg {DrawOptions} [_options] - Drawing options.
+   */
+  draw(ctx, _delta, _options) {
+    const width = GRID_SIZE / 3 * 2;
+    const height = GRID_SIZE / 3 * 2;
+
+    ctx.save();
+
+    ctx.translate(GRID_SIZE * 1.5, HALF_GRID);
+    icons.body(ctx, GRID_SIZE * 3, GRID_SIZE);
+
+    icons.bullet(ctx, width, height);
+
+    ctx.translate(-width / 2, -height / 4);
+    icons.input(ctx, QUART_GRID);
+
+    ctx.translate(0, height / 2);
+    icons.input(ctx, QUART_GRID);
+
+    ctx.translate(width + GRID_SIZE * 0.1, -height / 4);
+    icons.circle(ctx, GRID_SIZE * 0.1);
+
+    ctx.translate(GRID_SIZE * 0.1, 0);
+    icons.output(ctx, QUART_GRID);
+
+    ctx.restore();
+  }
 }
 
 export class Xnor extends InvertedGate {
@@ -310,6 +474,11 @@ export class Xnor extends InvertedGate {
   /** @return {Number} */
   output() {
     return this.input.output();
+  }
+
+  /** @return {String} */
+  get name() {
+    return 'Xnor';
   }
 }
 
@@ -329,6 +498,11 @@ export class Switch extends Gate {
   /** @return {Number} */
   output() {
     return this.#state ? this.b.output() : this.a.output();
+  }
+
+  /** @return {String} */
+  get name() {
+    return 'Switch';
   }
 
   toggle() {

@@ -107,7 +107,10 @@ export class Circuitous {
     );
 
     // Center GUI on canvas.
-    this.#guiPos = new DOMPoint((window.innerWidth - this.#gui.width) / 2, 20);
+    this.#guiPos = new DOMPoint(
+      (window.innerWidth - this.#gui.width) / 2,
+      Math.max((window.innerHeight - height) / 2 - GRID_SIZE * 7, 0),
+    );
 
     this.#repaint = true;
   }
