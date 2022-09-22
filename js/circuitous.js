@@ -12,9 +12,6 @@ export class Circuitous {
   /** @type {Gui} */
   #gui;
 
-  /** @type {DOMPoint} */
-  #guiPos;
-
   /** @type {Board} */
   #board;
 
@@ -32,14 +29,6 @@ export class Circuitous {
 
   /** @arg {String} id - Parent canvas element ID. */
   constructor(id) {
-    this.#gui = new Gui();
-    this.#guiPos = new DOMPoint();
-
-    this.#board = new Board();
-    this.#boardPos = new DOMPoint();
-
-    this.#graph = new Graph();
-
     const canvas = $(id);
     if (canvas instanceof HTMLCanvasElement) {
       const ctx = canvas.getContext('2d');
@@ -51,6 +40,12 @@ export class Circuitous {
     } else {
       throw new Error('Invalid canvas ID');
     }
+
+    this.#gui = new Gui(canvas, this.#requestRepaint.bind(this));
+    this.#board = new Board();
+    this.#boardPos = new DOMPoint();
+
+    this.#graph = new Graph();
 
     const debounce_resize = new Debounce(this.#resize.bind(this), 100);
     window.addEventListener('resize', debounce_resize.call.bind(debounce_resize));
@@ -65,13 +60,11 @@ export class Circuitous {
   #draw(delta) {
     this.#ctx.clearRect(0, 0, this.#ctx.canvas.width, this.#ctx.canvas.height);
 
-    this.#ctx.translate(this.#guiPos.x, this.#guiPos.y);
-    this.#gui.draw(this.#ctx, delta);
-    this.#ctx.translate(-this.#guiPos.x, -this.#guiPos.y);
-
     this.#ctx.translate(this.#boardPos.x, this.#boardPos.y);
     this.#board.draw(this.#ctx, delta);
     this.#ctx.translate(-this.#boardPos.x, -this.#boardPos.y);
+
+    this.#gui.draw(this.#ctx, delta);
   }
 
   /** @arg {DOMHighResTimeStamp} ts */
@@ -107,11 +100,15 @@ export class Circuitous {
     );
 
     // Center GUI on canvas.
-    this.#guiPos = new DOMPoint(
+    this.#gui.pos = new DOMPoint(
       (window.innerWidth - this.#gui.width) / 2,
       Math.max((window.innerHeight - height) / 2 - GRID_SIZE * 7, 0),
     );
 
+    this.#repaint = true;
+  }
+
+  #requestRepaint() {
     this.#repaint = true;
   }
 }

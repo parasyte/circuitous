@@ -10,10 +10,6 @@ import { TAU } from './consts.js';
  * @arg {Number} height - Body width.
  */
 export function body(ctx, width, height) {
-  const halfWidth = width / 2;
-  const halfHeight = height / 2;
-
-  ctx.translate(-halfWidth, -halfHeight);
   ctx.lineWidth = 2;
 
   // Body background
@@ -35,8 +31,6 @@ export function body(ctx, width, height) {
   ctx.lineTo(0, 0);
   ctx.lineTo(width, 0);
   ctx.stroke();
-
-  ctx.translate(halfWidth, halfHeight);
 }
 
 /** @arg {CanvasRenderingContext2D} ctx - Canvas context. */

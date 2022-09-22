@@ -1,5 +1,8 @@
 import { GRID_SIZE, HALF_GRID, HOLE_SIZE, QUART_GRID } from './consts.js';
-import * as icons from './icons.js';
+import * as symbols from './symbols.js';
+
+const SYM_WIDTH = GRID_SIZE / 3 * 2;
+const SYM_HEIGHT = GRID_SIZE / 3 * 2;
 
 export class DrawOptions {
   /** @type {DOMPoint[]} */
@@ -8,6 +11,9 @@ export class DrawOptions {
   /** @type {DOMPoint[]} */
   #outputs;
 
+  /** @type {Boolean} */
+  center;
+
   /**
    * @arg {DOMPoint[]} inputs - List of all inputs.
    * @arg {DOMPoint[]} outputs - List of all outputs.
@@ -15,6 +21,15 @@ export class DrawOptions {
   constructor(inputs, outputs) {
     this.#inputs = inputs;
     this.#outputs = outputs;
+    this.center = false;
+  }
+
+  /** @return {DrawOptions} */
+  static centered() {
+    const options =  new DrawOptions([], []);
+    options.center = true;
+
+    return options;
   }
 
   /** @return {DOMPoint[]} */
@@ -59,6 +74,21 @@ export class Trace {
 }
 
 export class Part {
+  /** @type {Number} */
+  width;
+
+  /** @type {Number} */
+  height;
+
+  /**
+   * @arg {Number} width - Part width in pixels.
+   * @arg {Number} height - Part height in pixels.
+   */
+  constructor(width, height) {
+    this.width = width;
+    this.height = height;
+  }
+
   /** @return {Number} */
   output() {
     throw new Error('Attempt to output high-Z');
@@ -77,9 +107,38 @@ export class Part {
   draw(_ctx, _delta, _options) {
     throw new Error('TODO');
   }
+
+  /**
+   * @arg {Number} x - X coordinate.
+   * @arg {Number} y - Y coordinate.
+   * @return {Boolean}
+   */
+  hitTest(x, y) {
+    const halfWidth = this.width / 2;
+    const halfHeight = this.height / 2;
+
+    return x >= -halfWidth && y >= -halfHeight && x < halfWidth && y < halfHeight;
+  }
+
+  /**
+   * @arg {CanvasRenderingContext2D} ctx - Canvas context.
+   * @arg {DrawOptions} [options] - Drawing options.
+   */
+  applyOrigin(ctx, options) {
+    if (options && options.center) {
+      ctx.translate(-this.width / 2, -this.height / 2);
+    } else {
+      ctx.translate(-HALF_GRID, -HALF_GRID);
+    }
+  }
+
 }
 
 export class Low extends Part {
+  constructor() {
+    super(0, 0);
+  }
+
   /** @return {Number} */
   output() {
     return 0;
@@ -92,6 +151,10 @@ export class Low extends Part {
 }
 
 export class High extends Part {
+  constructor() {
+    super(0, 0);
+  }
+
   /** @return {Number} */
   output() {
     return 1;
@@ -109,7 +172,7 @@ export class Buffer extends Part {
 
   /** @arg {Part} input - Input. */
   constructor(input) {
-    super();
+    super(GRID_SIZE * 2, GRID_SIZE);
     this.#input = input;
   }
 
@@ -123,13 +186,39 @@ export class Buffer extends Part {
     return 'Buffer';
   }
 
+  /**
+   * @arg {CanvasRenderingContext2D} ctx - Canvas context.
+   * @arg {DOMHighResTimeStamp} [_delta] - Time delta for animations.
+   * @arg {DrawOptions} [options] - Drawing options.
+   */
+  draw(ctx, _delta, options) {
+    ctx.save();
+
+    this.applyOrigin(ctx, options);
+    symbols.body(ctx, this.width, this.height);
+
+    ctx.translate(GRID_SIZE, HALF_GRID);
+    symbols.triangle(ctx, SYM_WIDTH, SYM_HEIGHT);
+
+    ctx.translate(-SYM_WIDTH / 2, 0);
+    symbols.input(ctx, QUART_GRID);
+
+    ctx.translate(SYM_WIDTH + GRID_SIZE * 0.2, 0);
+    symbols.output(ctx, QUART_GRID);
+
+    ctx.restore();
+  }
+
   /** @arg {Part} input - New input. */
   setInput(input) {
     this.#input = input;
   }
 }
 
-export class Wire extends Buffer {
+export class Wire extends Part {
+  /** @type {Part} */
+  #input;
+
   /** @type {String} */
   #color;
 
@@ -138,8 +227,14 @@ export class Wire extends Buffer {
    * @arg {String} color - Wire color.
    */
   constructor(input, color) {
-    super(input);
+    super(0, 0);
+    this.#input = input;
     this.#color = color;
+  }
+
+  /** @return {Number} */
+  output() {
+    return this.#input.output();
   }
 
   /** @return {String} */
@@ -176,15 +271,6 @@ export class Led extends Buffer {
   get name() {
     return 'LED';
   }
-
-  /**
-   * @arg {CanvasRenderingContext2D} _ctx - Canvas context.
-   * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
-   * @arg {DrawOptions} [_options] - Drawing options.
-   */
-  draw(_ctx, _delta, _options) {
-    throw new Error('TODO');
-  }
 }
 
 export class Inverter extends Buffer {
@@ -200,28 +286,26 @@ export class Inverter extends Buffer {
 
   /**
    * @arg {CanvasRenderingContext2D} ctx - Canvas context.
-   * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
-   * @arg {DrawOptions} [_options] - Drawing options.
+   * @arg {DOMHighResTimeStamp} [_delta] - Time delta for animations.
+   * @arg {DrawOptions} [options] - Drawing options.
    */
-  draw(ctx, _delta, _options) {
-    const width = GRID_SIZE / 3 * 2;
-    const height = GRID_SIZE / 3 * 2;
-
+  draw(ctx, _delta, options) {
     ctx.save();
 
+    this.applyOrigin(ctx, options);
+    symbols.body(ctx, this.width, this.height);
+
     ctx.translate(GRID_SIZE, HALF_GRID);
-    icons.body(ctx, GRID_SIZE * 2, GRID_SIZE);
+    symbols.triangle(ctx, SYM_WIDTH, SYM_HEIGHT);
 
-    icons.triangle(ctx, width, height);
+    ctx.translate(-SYM_WIDTH / 2, 0);
+    symbols.input(ctx, QUART_GRID);
 
-    ctx.translate(-width / 2, 0);
-    icons.input(ctx, QUART_GRID);
-
-    ctx.translate(width + GRID_SIZE * 0.1, 0);
-    icons.circle(ctx, GRID_SIZE * 0.1);
+    ctx.translate(SYM_WIDTH + GRID_SIZE * 0.1, 0);
+    symbols.circle(ctx, GRID_SIZE * 0.1);
 
     ctx.translate(GRID_SIZE * 0.1, 0);
-    icons.output(ctx, QUART_GRID);
+    symbols.output(ctx, QUART_GRID);
 
     ctx.restore();
   }
@@ -239,7 +323,7 @@ class Gate extends Part {
    * @arg {Part} b - Second input.
    */
   constructor(a, b) {
-    super();
+    super(GRID_SIZE * 3, GRID_SIZE);
     this.a = a;
     this.b = b;
   }
@@ -268,28 +352,26 @@ export class And extends Gate {
 
   /**
    * @arg {CanvasRenderingContext2D} ctx - Canvas context.
-   * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
-   * @arg {DrawOptions} [_options] - Drawing options.
+   * @arg {DOMHighResTimeStamp} [_delta] - Time delta for animations.
+   * @arg {DrawOptions} [options] - Drawing options.
    */
-  draw(ctx, _delta, _options) {
-    const width = GRID_SIZE / 3 * 2;
-    const height = GRID_SIZE / 3 * 2;
-
+  draw(ctx, _delta, options) {
     ctx.save();
 
+    this.applyOrigin(ctx, options);
+    symbols.body(ctx, this.width, this.height);
+
     ctx.translate(GRID_SIZE * 1.5, HALF_GRID);
-    icons.body(ctx, GRID_SIZE * 3, GRID_SIZE);
+    symbols.roundBox(ctx, SYM_WIDTH, SYM_HEIGHT);
 
-    icons.roundBox(ctx, width, height);
+    ctx.translate(-SYM_WIDTH / 2, -SYM_HEIGHT / 4);
+    symbols.input(ctx, QUART_GRID);
 
-    ctx.translate(-width / 2, -height / 4);
-    icons.input(ctx, QUART_GRID);
+    ctx.translate(0, SYM_HEIGHT / 2);
+    symbols.input(ctx, QUART_GRID);
 
-    ctx.translate(0, height / 2);
-    icons.input(ctx, QUART_GRID);
-
-    ctx.translate(width, -height / 4);
-    icons.output(ctx, QUART_GRID);
+    ctx.translate(SYM_WIDTH, -SYM_HEIGHT / 4);
+    symbols.output(ctx, QUART_GRID);
 
     ctx.restore();
   }
@@ -308,28 +390,26 @@ export class Or extends Gate {
 
   /**
    * @arg {CanvasRenderingContext2D} ctx - Canvas context.
-   * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
-   * @arg {DrawOptions} [_options] - Drawing options.
+   * @arg {DOMHighResTimeStamp} [_delta] - Time delta for animations.
+   * @arg {DrawOptions} [options] - Drawing options.
    */
-  draw(ctx, _delta, _options) {
-    const width = GRID_SIZE / 3 * 2;
-    const height = GRID_SIZE / 3 * 2;
-
+  draw(ctx, _delta, options) {
     ctx.save();
 
+    this.applyOrigin(ctx, options);
+    symbols.body(ctx, this.width, this.height);
+
     ctx.translate(GRID_SIZE * 1.5, HALF_GRID);
-    icons.body(ctx, GRID_SIZE * 3, GRID_SIZE);
+    symbols.bullet(ctx, SYM_WIDTH, SYM_HEIGHT);
 
-    icons.bullet(ctx, width, height);
+    ctx.translate(-SYM_WIDTH / 2, -SYM_HEIGHT / 4);
+    symbols.input(ctx, QUART_GRID);
 
-    ctx.translate(-width / 2, -height / 4);
-    icons.input(ctx, QUART_GRID);
+    ctx.translate(0, SYM_HEIGHT / 2);
+    symbols.input(ctx, QUART_GRID);
 
-    ctx.translate(0, height / 2);
-    icons.input(ctx, QUART_GRID);
-
-    ctx.translate(width, -height / 4);
-    icons.output(ctx, QUART_GRID);
+    ctx.translate(SYM_WIDTH, -SYM_HEIGHT / 4);
+    symbols.output(ctx, QUART_GRID);
 
     ctx.restore();
   }
@@ -355,7 +435,7 @@ class InvertedGate extends Part {
    * @arg {Part} gate - Gate to be inverted.
    */
   constructor(gate) {
-    super();
+    super(GRID_SIZE * 3, GRID_SIZE);
     this.input = new Inverter(gate);
   }
 }
@@ -381,31 +461,29 @@ export class Nand extends InvertedGate {
 
   /**
    * @arg {CanvasRenderingContext2D} ctx - Canvas context.
-   * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
-   * @arg {DrawOptions} [_options] - Drawing options.
+   * @arg {DOMHighResTimeStamp} [_delta] - Time delta for animations.
+   * @arg {DrawOptions} [options] - Drawing options.
    */
-  draw(ctx, _delta, _options) {
-    const width = GRID_SIZE / 3 * 2;
-    const height = GRID_SIZE / 3 * 2;
-
+  draw(ctx, _delta, options) {
     ctx.save();
 
+    this.applyOrigin(ctx, options);
+    symbols.body(ctx, this.width, this.height);
+
     ctx.translate(GRID_SIZE * 1.5, HALF_GRID);
-    icons.body(ctx, GRID_SIZE * 3, GRID_SIZE);
+    symbols.roundBox(ctx, SYM_WIDTH, SYM_HEIGHT);
 
-    icons.roundBox(ctx, width, height);
+    ctx.translate(-SYM_WIDTH / 2, -SYM_HEIGHT / 4);
+    symbols.input(ctx, QUART_GRID);
 
-    ctx.translate(-width / 2, -height / 4);
-    icons.input(ctx, QUART_GRID);
+    ctx.translate(0, SYM_HEIGHT / 2);
+    symbols.input(ctx, QUART_GRID);
 
-    ctx.translate(0, height / 2);
-    icons.input(ctx, QUART_GRID);
-
-    ctx.translate(width + GRID_SIZE * 0.1, -height / 4);
-    icons.circle(ctx, GRID_SIZE * 0.1);
+    ctx.translate(SYM_WIDTH + GRID_SIZE * 0.1, -SYM_HEIGHT / 4);
+    symbols.circle(ctx, GRID_SIZE * 0.1);
 
     ctx.translate(GRID_SIZE * 0.1, 0);
-    icons.output(ctx, QUART_GRID);
+    symbols.output(ctx, QUART_GRID);
 
     ctx.restore();
   }
@@ -432,31 +510,29 @@ export class Nor extends InvertedGate {
 
   /**
    * @arg {CanvasRenderingContext2D} ctx - Canvas context.
-   * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
-   * @arg {DrawOptions} [_options] - Drawing options.
+   * @arg {DOMHighResTimeStamp} [_delta] - Time delta for animations.
+   * @arg {DrawOptions} [options] - Drawing options.
    */
-  draw(ctx, _delta, _options) {
-    const width = GRID_SIZE / 3 * 2;
-    const height = GRID_SIZE / 3 * 2;
-
+  draw(ctx, _delta, options) {
     ctx.save();
 
+    this.applyOrigin(ctx, options);
+    symbols.body(ctx, this.width, this.height);
+
     ctx.translate(GRID_SIZE * 1.5, HALF_GRID);
-    icons.body(ctx, GRID_SIZE * 3, GRID_SIZE);
+    symbols.bullet(ctx, SYM_WIDTH, SYM_HEIGHT);
 
-    icons.bullet(ctx, width, height);
+    ctx.translate(-SYM_WIDTH / 2, -SYM_HEIGHT / 4);
+    symbols.input(ctx, QUART_GRID);
 
-    ctx.translate(-width / 2, -height / 4);
-    icons.input(ctx, QUART_GRID);
+    ctx.translate(0, SYM_HEIGHT / 2);
+    symbols.input(ctx, QUART_GRID);
 
-    ctx.translate(0, height / 2);
-    icons.input(ctx, QUART_GRID);
-
-    ctx.translate(width + GRID_SIZE * 0.1, -height / 4);
-    icons.circle(ctx, GRID_SIZE * 0.1);
+    ctx.translate(SYM_WIDTH + GRID_SIZE * 0.1, -SYM_HEIGHT / 4);
+    symbols.circle(ctx, GRID_SIZE * 0.1);
 
     ctx.translate(GRID_SIZE * 0.1, 0);
-    icons.output(ctx, QUART_GRID);
+    symbols.output(ctx, QUART_GRID);
 
     ctx.restore();
   }
