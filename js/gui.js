@@ -1,5 +1,6 @@
 import { GRID_SIZE, HALF_GRID, MAX_WIDTH } from './consts.js';
-import { Part, And, Inverter, Nand, Nor, Or, DrawOptions } from './parts.js';
+import { Board } from './board.js';
+import { Part, HighZ, And, Inverter, Nand, Nor, Or, DrawOptions } from './parts.js';
 
 const GRAB_NONE = 0;
 const GRAB_CLICK = 1;
@@ -8,6 +9,9 @@ const GRAB_DRAG = 2;
 export class Gui {
   /** @type {HTMLCanvasElement} */
   #canvas;
+
+  /** @type {Board} */
+  #board;
 
   /** @type {() => void} */
   #repaint;
@@ -29,18 +33,20 @@ export class Gui {
 
   /**
    * @arg {HTMLCanvasElement} canvas - Canvas element that owns this GUI.
+   * @arg {Board} board - Breadboard reference for hit testing.
    * @arg {() => void} repaint - Request repaint function.
    */
-  constructor(canvas, repaint) {
+  constructor(canvas, board, repaint) {
     this.#canvas = canvas;
+    this.#board = board;
     this.#repaint = repaint;
 
     this.#parts = [];
-    this.#parts.push(new Inverter(new Part(0, 0)));
-    this.#parts.push(new And(new Part(0, 0), new Part(0, 0)));
-    this.#parts.push(new Nand(new Part(0, 0), new Part(0, 0)));
-    this.#parts.push(new Or(new Part(0, 0), new Part(0, 0)));
-    this.#parts.push(new Nor(new Part(0, 0), new Part(0, 0)));
+    this.#parts.push(new Inverter(new HighZ()));
+    this.#parts.push(new And(new HighZ(), new HighZ()));
+    this.#parts.push(new Nand(new HighZ(), new HighZ()));
+    this.#parts.push(new Or(new HighZ(), new HighZ()));
+    this.#parts.push(new Nor(new HighZ(), new HighZ()));
 
     this.pos = new DOMPoint();
     this.#grabbing = GRAB_NONE;
@@ -50,6 +56,7 @@ export class Gui {
     window.addEventListener('pointermove', this.#pointermove.bind(this));
     window.addEventListener('pointerdown', this.#pointerdown.bind(this));
     window.addEventListener('pointerup', this.#pointerup.bind(this));
+    window.addEventListener('keydown', this.#keydown.bind(this));
   }
 
   /** @arg {PointerEvent} event - Event information. */
@@ -59,7 +66,6 @@ export class Gui {
       this.#pointer.y = event.y;
       this.#repaint();
 
-      // TODO: Drag GUI button to board.
       return;
     }
 
@@ -91,10 +97,7 @@ export class Gui {
 
   #pointerdown() {
     if (this.#grabbing) {
-      this.#grabbing = GRAB_NONE;
-      this.#hit = -1;
-      this.#canvas.style.cursor = 'auto';
-      this.#repaint();
+      this.#reset();
     } else if (this.#hit >= 0) {
       this.#grabbing = GRAB_DRAG;
       this.#canvas.style.cursor = 'grabbing';
@@ -106,14 +109,32 @@ export class Gui {
   }
 
   #pointerup() {
-    if (this.#grabbing && this.#pointer.x && this.#pointer.y) {
-      this.#grabbing = GRAB_NONE;
-      this.#canvas.style.cursor = 'auto';
-      this.#repaint();
+    const width = this.width / this.#parts.length;
+    const x = this.pos.x + this.#hit * width + HALF_GRID + GRID_SIZE * 2;
+    const y = this.pos.y + HALF_GRID;
+
+    if (this.#grabbing && this.#pointer.x && this.#pointer.y &&
+      (this.#hit < 0 || !this.#parts[this.#hit].hitTest(x - this.#pointer.x, y - this.#pointer.y))
+    ) {
+      this.#reset();
     } else if (this.#grabbing == GRAB_DRAG && this.#hit >= 0) {
       this.#grabbing = GRAB_CLICK;
       this.#repaint();
     }
+  }
+
+  /** @arg {KeyboardEvent} event - Event information. */
+  #keydown(event) {
+    if (event.code == "Escape") {
+      this.#reset();
+    }
+  }
+
+  #reset() {
+    this.#grabbing = GRAB_NONE;
+    this.#hit = -1;
+    this.#canvas.style.cursor = 'auto';
+    this.#repaint();
   }
 
   /** @return {Number} */
@@ -155,9 +176,27 @@ export class Gui {
 
     // Draw dynamic GUI (dragging)
     if (this.#grabbing && this.#pointer.x && this.#pointer.y && this.#hit >= 0) {
-      ctx.translate(this.#pointer.x, this.#pointer.y);
+      let x = this.#pointer.x;
+      let y = this.#pointer.y;
+      let alpha = 0.5;
+
+      const snap = this.#board.snap(this.#parts[this.#hit], x, y);
+      if (snap) {
+        x = snap.x;
+        y = snap.y;
+        alpha = 1.0;
+        // TODO: Check for conflicts and change cursor to "not-allowed"
+        //
+        // Possible conflicts:
+        // 1. Parts overlap.
+        // 2. More than 1 output connected together.
+      }
+
+      ctx.translate(x, y);
+      ctx.globalAlpha = alpha;
       this.#parts[this.#hit].draw(ctx, delta);
-      ctx.translate(-this.#pointer.x, -this.#pointer.y);
+      ctx.globalAlpha = 1.0;
+      ctx.translate(-x, -y);
     }
   }
 }

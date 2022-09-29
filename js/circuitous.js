@@ -1,8 +1,8 @@
-import { Board } from './board.js';
+import { Board, Trace } from './board.js';
 import { GRID_SIZE } from './consts.js';
 import { Graph } from './graph.js';
 import { Gui } from './gui.js';
-import { Part, Trace } from './parts.js';
+import { Part } from './parts.js';
 import { $, Debounce } from './utils.js';
 
 export class Circuitous {
@@ -14,9 +14,6 @@ export class Circuitous {
 
   /** @type {Board} */
   #board;
-
-  /** @type {DOMPoint} */
-  #boardPos;
 
   /** @type {Graph<Part, Trace>} */
   #graph;
@@ -41,10 +38,8 @@ export class Circuitous {
       throw new Error('Invalid canvas ID');
     }
 
-    this.#gui = new Gui(canvas, this.#requestRepaint.bind(this));
     this.#board = new Board();
-    this.#boardPos = new DOMPoint();
-
+    this.#gui = new Gui(canvas, this.#board, this.#requestRepaint.bind(this));
     this.#graph = new Graph();
 
     const debounce_resize = new Debounce(this.#resize.bind(this), 100);
@@ -60,10 +55,7 @@ export class Circuitous {
   #draw(delta) {
     this.#ctx.clearRect(0, 0, this.#ctx.canvas.width, this.#ctx.canvas.height);
 
-    this.#ctx.translate(this.#boardPos.x, this.#boardPos.y);
     this.#board.draw(this.#ctx, delta);
-    this.#ctx.translate(-this.#boardPos.x, -this.#boardPos.y);
-
     this.#gui.draw(this.#ctx, delta);
   }
 
@@ -92,10 +84,9 @@ export class Circuitous {
     this.#ctx.setTransform(new DOMMatrix([scale, 0, 0, scale, 0, 0]));
 
     // Center board on canvas.
-    const width = (this.#board.width + 2) * GRID_SIZE;
     const height = (this.#board.height + 4) * GRID_SIZE;
-    this.#boardPos = new DOMPoint(
-      (window.innerWidth - width) / 2,
+    this.#board.pos = new DOMPoint(
+      (window.innerWidth - (this.#board.width + 2) * GRID_SIZE) / 2,
       (window.innerHeight - height) / 2,
     );
 

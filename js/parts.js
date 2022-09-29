@@ -1,4 +1,4 @@
-import { GRID_SIZE, HALF_GRID, HOLE_SIZE, QUART_GRID } from './consts.js';
+import { GRID_SIZE, HALF_GRID, QUART_GRID } from './consts.js';
 import * as symbols from './symbols.js';
 
 const SYM_WIDTH = GRID_SIZE / 3 * 2;
@@ -43,37 +43,10 @@ export class DrawOptions {
   }
 }
 
-export class Trace {
-  /** @type {String} */
-  #color;
-
-  /**
-   * @arg {String} color - Wire color.
-   */
-  constructor(color) {
-    this.#color = color;
-  }
-
-  /**
-   * @arg {CanvasRenderingContext2D} ctx - Canvas context.
-   * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
-   * @arg {DrawOptions} [_options] - Drawing options.
-   */
-  draw(ctx, _delta, _options) {
-    ctx.strokeStyle = this.#color;
-    ctx.lineWidth = HOLE_SIZE * 1.5;
-
-    const y = 4 * GRID_SIZE;
-
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(0, y);
-    ctx.closePath();
-    ctx.stroke();
-  }
-}
-
 export class Part {
+  /** @type {Number} */
+  pins;
+
   /** @type {Number} */
   width;
 
@@ -81,10 +54,12 @@ export class Part {
   height;
 
   /**
+   * @arg {Number} pins - Number of pins.
    * @arg {Number} width - Part width in pixels.
    * @arg {Number} height - Part height in pixels.
    */
-  constructor(width, height) {
+  constructor(pins, width, height) {
+    this.pins = pins;
     this.width = width;
     this.height = height;
   }
@@ -131,12 +106,11 @@ export class Part {
       ctx.translate(-HALF_GRID, -HALF_GRID);
     }
   }
-
 }
 
 export class Low extends Part {
   constructor() {
-    super(0, 0);
+    super(0, 0, 0);
   }
 
   /** @return {Number} */
@@ -152,7 +126,7 @@ export class Low extends Part {
 
 export class High extends Part {
   constructor() {
-    super(0, 0);
+    super(0, 0, 0);
   }
 
   /** @return {Number} */
@@ -166,13 +140,25 @@ export class High extends Part {
   }
 }
 
+export class HighZ extends Part {
+  constructor() {
+    super(0, 0, 0);
+  }
+
+  /** @return {String} */
+  get name() {
+    return 'High-Z';
+  }
+}
+
 export class Buffer extends Part {
   /** @type {Part} */
   #input;
 
   /** @arg {Part} input - Input. */
   constructor(input) {
-    super(GRID_SIZE * 2, GRID_SIZE);
+    const pins = 2;
+    super(pins, GRID_SIZE * pins, GRID_SIZE);
     this.#input = input;
   }
 
@@ -227,7 +213,7 @@ export class Wire extends Part {
    * @arg {String} color - Wire color.
    */
   constructor(input, color) {
-    super(0, 0);
+    super(0, 0, 0);
     this.#input = input;
     this.#color = color;
   }
@@ -323,7 +309,8 @@ class Gate extends Part {
    * @arg {Part} b - Second input.
    */
   constructor(a, b) {
-    super(GRID_SIZE * 3, GRID_SIZE);
+    const pins = 3;
+    super(pins, GRID_SIZE * pins, GRID_SIZE);
     this.a = a;
     this.b = b;
   }
@@ -435,7 +422,8 @@ class InvertedGate extends Part {
    * @arg {Part} gate - Gate to be inverted.
    */
   constructor(gate) {
-    super(GRID_SIZE * 3, GRID_SIZE);
+    const pins = 3;
+    super(pins, GRID_SIZE * pins, GRID_SIZE);
     this.input = new Inverter(gate);
   }
 }
