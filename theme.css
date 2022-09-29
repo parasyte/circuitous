@@ -11,7 +11,7 @@
 
 @media (prefers-color-scheme: light) {
   :root {
-    --background-color: #eee;
+    --background-color: #ccc;
     --text-color: #333;
     --border-color: #777;
     --accent-color: slateblue;

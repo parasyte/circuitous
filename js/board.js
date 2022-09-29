@@ -84,7 +84,7 @@ export class Board {
     ctx.translate(this.pos.x, this.pos.y);
 
     // Base
-    ctx.fillStyle = 'gray';
+    ctx.fillStyle = 'rgb(180, 180, 180)';
     ctx.fillRect(0, 0, width, height);
 
     // Center gap
@@ -292,7 +292,7 @@ class PowerRail {
     ctx.translate(0, this.#top ? -RAIL_HEIGHT : 0);
 
     // Base
-    ctx.fillStyle = 'gray';
+    ctx.fillStyle = 'rgb(180, 180, 180)';
     ctx.fillRect(0, 0, this.#width, RAIL_HEIGHT);
 
     // Edge separators

@@ -36,9 +36,9 @@
   }],
   "screenshots": [{
     "src": "screenshots/dark.png",
-    "sizes": "550x600"
+    "sizes": "1150x600"
   }, {
     "src": "screenshots/light.png",
-    "sizes": "550x600"
+    "sizes": "1150x600"
   }]
 }

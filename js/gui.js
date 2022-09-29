@@ -152,7 +152,7 @@ export class Gui {
 
     ctx.translate(this.pos.x, this.pos.y);
 
-    ctx.fillStyle = 'rgba(40, 40, 40)';
+    ctx.fillStyle = 'rgba(20, 20, 20, 0.4)';
     // TODO: Cleanup these translations
     ctx.translate((-MAX_WIDTH + this.width) / 2, -HALF_GRID);
     ctx.fillRect(0, 0, MAX_WIDTH, GRID_SIZE * 3);
