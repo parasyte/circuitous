@@ -97,29 +97,26 @@ export class Gui {
 
   #pointerdown() {
     if (this.#grabbing) {
+      // TODO: Implement drop
       this.#reset();
     } else if (this.#hit >= 0) {
       this.#grabbing = GRAB_DRAG;
       this.#canvas.style.cursor = 'grabbing';
       this.#repaint();
     }
-
-    this.#pointer.x = 0;
-    this.#pointer.y = 0;
   }
 
   #pointerup() {
     const width = this.width / this.#parts.length;
-    const x = this.pos.x + this.#hit * width + HALF_GRID + GRID_SIZE * 2;
-    const y = this.pos.y + HALF_GRID;
+    const x = this.pos.x + this.#hit * width + HALF_GRID + GRID_SIZE * 2 - this.#pointer.x;
+    const y = this.pos.y + HALF_GRID - this.#pointer.y;
 
-    if (this.#grabbing && this.#pointer.x && this.#pointer.y &&
-      (this.#hit < 0 || !this.#parts[this.#hit].hitTest(x - this.#pointer.x, y - this.#pointer.y))
-    ) {
-      this.#reset();
-    } else if (this.#grabbing == GRAB_DRAG && this.#hit >= 0) {
+    if (this.#grabbing == GRAB_DRAG && this.#hit >= 0 && this.#parts[this.#hit].hitTest(x, y)) {
       this.#grabbing = GRAB_CLICK;
       this.#repaint();
+    } else {
+      // TODO: Implement drop
+      this.#reset();
     }
   }
 
