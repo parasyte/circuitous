@@ -219,7 +219,7 @@ export class Board {
       return;
     }
 
-    if (type == SNAP_BOARD) {
+    if (type === SNAP_BOARD) {
       // Snap to board pins
       let by = Math.floor((y - RAIL_HEIGHT) / GRID_SIZE - 1);
       if (by <= halfHeight) {
@@ -410,7 +410,7 @@ export class Trace {
     let x = 0;
     let y = 0;
 
-    if (this.#dir == DIRECTION_HORIZONTAL) {
+    if (this.#dir === DIRECTION_HORIZONTAL) {
       x = (this.#pins / 5 * 6 - 2) * GRID_SIZE;
     } else {
       y = (this.#pins - 1) * GRID_SIZE;

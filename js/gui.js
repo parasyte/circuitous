@@ -111,7 +111,7 @@ export class Gui {
     const x = this.pos.x + this.#hit * width + HALF_GRID + GRID_SIZE * 2 - this.#pointer.x;
     const y = this.pos.y + HALF_GRID - this.#pointer.y;
 
-    if (this.#grabbing == GRAB_DRAG && this.#hit >= 0 && this.#parts[this.#hit].hitTest(x, y)) {
+    if (this.#grabbing === GRAB_DRAG && this.#hit >= 0 && this.#parts[this.#hit].hitTest(x, y)) {
       this.#grabbing = GRAB_CLICK;
       this.#repaint();
     } else {
@@ -122,7 +122,7 @@ export class Gui {
 
   /** @arg {KeyboardEvent} event - Event information. */
   #keydown(event) {
-    if (event.code == "Escape") {
+    if (event.code === "Escape") {
       this.#reset();
     }
   }
