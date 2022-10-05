@@ -1,3 +1,4 @@
+/* eslint-disable  @typescript-eslint/no-unused-vars */
 import {
   GRID_SIZE, HALF_GRID, HOLE_SIZE, TAU,
   DIRECTION_HORIZONTAL, DIRECTION_VERTICAL,
@@ -5,6 +6,7 @@ import {
   TRACE_STATE_LOW, TRACE_STATE_HIGH, TRACE_STATE_HIGH_Z, TRACE_STATE_UNCONNECTED,
 } from './consts.js';
 import { Part, High, Low, Wire, DrawOptions, connectParts } from './parts.js';
+/* eslint-enable  @typescript-eslint/no-unused-vars */
 
 const RAIL_HEIGHT = 55;
 

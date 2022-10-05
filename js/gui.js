@@ -1,6 +1,8 @@
+/* eslint-disable  @typescript-eslint/no-unused-vars */
 import { GRID_SIZE, HALF_GRID, MAX_WIDTH } from './consts.js';
 import { Board, SnapPoint } from './board.js';
 import { Part, HighZ, And, Inverter, Nand, Nor, Or, DrawOptions } from './parts.js';
+/* eslint-enable  @typescript-eslint/no-unused-vars */
 
 const GRAB_NONE = 0;
 const GRAB_CLICK = 1;
@@ -197,7 +199,7 @@ export class Gui {
 
   /** @arg {KeyboardEvent} event - Event information. */
   #keydown(event) {
-    if (event.code === "Escape") {
+    if (event.code === 'Escape') {
       this.#reset();
     }
   }

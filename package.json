@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "tsc && mocha"
+    "test": "tsc && eslint *.js **/*.js && mocha"
   },
   "repository": {
     "type": "git",
@@ -20,7 +20,10 @@
   "devDependencies": {
     "@types/chai": "^4.3.3",
     "@types/mocha": "^9.1.1",
+    "@typescript-eslint/eslint-plugin": "^5.39.0",
+    "@typescript-eslint/parser": "^5.39.0",
     "chai": "^4.3.6",
+    "eslint": "^8.24.0",
     "mocha": "^10.0.0"
   }
 }
