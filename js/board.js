@@ -2,6 +2,7 @@ import {
   GRID_SIZE, HALF_GRID, HOLE_SIZE, TAU,
   DIRECTION_HORIZONTAL, DIRECTION_VERTICAL,
   SNAP_BOARD, SNAP_POWER_RAIL_1, SNAP_POWER_RAIL_2,
+  TRACE_STATE_LOW, TRACE_STATE_HIGH, TRACE_STATE_HIGH_Z, TRACE_STATE_UNCONNECTED,
 } from './consts.js';
 import { Part, High, Low, Wire, DrawOptions, connectParts } from './parts.js';
 
@@ -87,7 +88,7 @@ export class Board {
 
     this.#parts = Array.from(new Array(this.height), () => new Array(this.width));
     this.#traces = Array.from(new Array(this.width * 2), () => {
-      return new Trace(5, DIRECTION_VERTICAL, 'rgba(0, 32, 64, 0.2)');
+      return new Trace(5, DIRECTION_VERTICAL, TRACE_STATE_UNCONNECTED);
     });
 
     const pins = Math.floor(this.width / 6 * 5);
@@ -261,7 +262,8 @@ export class Board {
         const nextSnap = new SnapPoint(snap.colNum() + pin, snap.rowNum(), snap.type);
         const trace = this.#traceFromSnap(nextSnap);
 
-        if (trace.hasOutput()) {
+        if (trace.output()) {
+          trace.highlight();
           return true;
         }
       }
@@ -372,8 +374,8 @@ class PowerRail {
     this.#top = top;
 
     this.#traces = [
-      new Trace(pins, DIRECTION_HORIZONTAL, 'rgba(192, 0, 0, 0.2)'),
-      new Trace(pins, DIRECTION_HORIZONTAL, 'rgba(0, 0, 192, 0.2)'),
+      new Trace(pins, DIRECTION_HORIZONTAL, TRACE_STATE_HIGH),
+      new Trace(pins, DIRECTION_HORIZONTAL, TRACE_STATE_LOW),
     ];
   }
 
@@ -488,23 +490,33 @@ export class Trace {
   /** @type {Number} */
   #dir;
 
+  /** @type {Number} */
+  #state;
+
   /** @type {String} */
   #color;
 
   /** @type {([Part, Number] | null)[]} */
   #parts;
 
+  /** @type {Boolean} */
+  #highlight;
+
   /**
    * @arg {Number} pins - Number of pins in the trace.
    * @arg {Number} dir - Trace direction (See `DIRECTION_*` constants).
-   * @arg {String} color - Wire color.
+   * @arg {Number} state - Trace state (See `TRACE_STATE_*` constants).
    */
-  constructor(pins, dir, color) {
+  constructor(pins, dir, state) {
     this.#pins = pins;
     this.#dir = dir;
-    this.#color = color;
+    this.#state = state;
 
+    this.#color = 'black';
     this.#parts = Array.from(new Array(pins), () => null);
+    this.#highlight = false;
+
+    this.#setColor(state);
   }
 
   /**
@@ -513,7 +525,13 @@ export class Trace {
    * @arg {DrawOptions} [_options] - Drawing options.
    */
   draw(ctx, _delta, _options) {
-    ctx.strokeStyle = this.#color;
+    if (this.#highlight) {
+      // Highlighting is temporary
+      this.#highlight = false;
+      ctx.strokeStyle = 'red';
+    } else {
+      ctx.strokeStyle = this.#color;
+    }
     ctx.lineWidth = HOLE_SIZE * 1.5;
 
     let x = 0;
@@ -567,31 +585,73 @@ export class Trace {
     // Add the part after pins have been connected
     this.#parts[idx] = [part, pin];
 
-    // TODO: Highlight traces to indicate logic level
-    //
-    // - Red: High
-    // - Blue: Low
-    // - Black?: High-Z
-    // - Gray: Unconnected
-    //
-    // To support High-Z, we either need to catch exceptions
-    // or change High-Z to output something like `NaN` and add `isNaN()` checks everywhere?
+    // TODO: To support High-Z, we either need to catch exceptions
+    // or change High-Z to output something like `NaN` and check `isNaN()` everywhere?
+    const outputPart = this.output();
+    if (outputPart) {
+      try {
+        if (outputPart.output()) {
+          this.#setColor(TRACE_STATE_HIGH);
+        } else {
+          this.#setColor(TRACE_STATE_LOW);
+        }
+      } catch (e) {
+        this.#setColor(TRACE_STATE_HIGH_Z);
+      }
+    } else {
+      this.#setColor(TRACE_STATE_HIGH_Z);
+    }
   }
 
   /**
-   * @return {Boolean}
+   * @return {Part | void}
    */
-  hasOutput() {
+  output() {
     for (const entry of this.#parts) {
       if (entry) {
         const [part, pin] = entry;
 
         if (part.outputPins().indexOf(pin) >= 0) {
-          return true;
+          return part;
         }
       }
     }
+  }
 
-    return false;
+  /** @return {Number} */
+  get state() {
+    return this.#state;
+  }
+
+  highlight() {
+    this.#highlight = true;
+  }
+
+  /**
+   * @arg {Number} state - Trace state.
+   */
+  #setColor(state) {
+    this.#state = state;
+
+    switch (state) {
+    case TRACE_STATE_LOW:
+      // Light red
+      this.#color = 'rgba(0, 0, 192, 0.2)';
+      break;
+    case TRACE_STATE_HIGH:
+      // Light blue
+      this.#color = 'rgba(192, 0, 0, 0.2)';
+      break;
+    case TRACE_STATE_HIGH_Z:
+      // Obviously orange
+      this.#color = 'orange';
+      break;
+    case TRACE_STATE_UNCONNECTED:
+      // Light gray (bluish)
+      this.#color = 'rgba(0, 32, 64, 0.2)';
+      break;
+    default:
+      throw new Error(`Invalid trace state: ${state}`);
+    }
   }
 }

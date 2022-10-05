@@ -12,3 +12,8 @@ export const DIRECTION_VERTICAL = 1;
 export const SNAP_POWER_RAIL_1 = 0;
 export const SNAP_BOARD = 1;
 export const SNAP_POWER_RAIL_2 = 2;
+
+export const TRACE_STATE_LOW = 0;
+export const TRACE_STATE_HIGH = 1;
+export const TRACE_STATE_HIGH_Z = 2;
+export const TRACE_STATE_UNCONNECTED = 3;
