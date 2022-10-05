@@ -117,8 +117,8 @@ export class Board {
 
     // Inner traces
     for (const [i, trace] of this.#traces.entries()) {
-      const x = (i % this.width + 1) * GRID_SIZE + HALF_GRID;
-      const y = (Math.floor(i / this.width) * (this.height / 2 + 2) + 1) * GRID_SIZE + HALF_GRID;
+      const x = (Math.floor(i / 2) + 1) * GRID_SIZE + HALF_GRID;
+      const y = ((i % 2) * (this.height / 2 + 2) + 1) * GRID_SIZE + HALF_GRID;
 
       ctx.translate(x, y);
       trace.draw(ctx, delta);
