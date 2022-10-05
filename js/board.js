@@ -186,7 +186,7 @@ export class Board {
     const seen = new Set();
     for (let [j, row] of this.#parts.entries()) {
       // Skip center two rows
-      if (j === this.height / 2) {
+      if (j >= this.height / 2) {
         j += 2;
       }
 
