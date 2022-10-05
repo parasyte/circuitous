@@ -64,6 +64,16 @@ export class Part {
     this.height = height;
   }
 
+  /** @return {Number[]} */
+  inputPins() {
+    throw new Error('No inputs on a generic Part');
+  }
+
+  /** @return {Number[]} */
+  outputPins() {
+    throw new Error('No outputs on a generic Part');
+  }
+
   /** @return {Number} */
   output() {
     throw new Error('Attempt to output high-Z');
@@ -151,6 +161,68 @@ export class HighZ extends Part {
   }
 }
 
+export class Wire extends Part {
+  /** @type {Part} */
+  #input;
+
+  /** @type {String} */
+  #color;
+
+  /**
+   * @arg {Part} input - Input.
+   * @arg {String} color - Wire color.
+   */
+  constructor(input, color) {
+    const pins = 2;
+    super(pins, 0, 0);
+    this.#input = input;
+    this.#color = color;
+  }
+
+  /** @return {Number[]} */
+  inputPins() {
+    return [0];
+  }
+
+  /** @return {Number[]} */
+  outputPins() {
+    return [1];
+  }
+
+  /** @return {Number} */
+  output() {
+    return this.#input.output();
+  }
+
+  /** @return {String} */
+  get name() {
+    return 'Wire';
+  }
+
+  /**
+   * @arg {CanvasRenderingContext2D} ctx - Canvas context.
+   * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
+   * @arg {DrawOptions} [options] - Drawing options.
+   */
+  draw(ctx, _delta, options) {
+    ctx.save();
+    ctx.strokeStyle = this.#color;
+    ctx.lineWidth = 10;
+
+    ctx.beginPath();
+    const start = (options && options.inputs[0]) || new DOMPoint();
+    ctx.moveTo(start.x, start.y);
+    const end = (options && options.outputs[0]) || new DOMPoint();
+    ctx.bezierCurveTo(start.x + 10, start.y, end.x - 10, end.y, end.x, end.y); // TODO
+    ctx.closePath();
+
+    ctx.stroke();
+    ctx.restore();
+
+    throw new Error('TODO');
+  }
+}
+
 export class Buffer extends Part {
   /** @type {Part} */
   #input;
@@ -160,6 +232,16 @@ export class Buffer extends Part {
     const pins = 2;
     super(pins, GRID_SIZE * pins, GRID_SIZE);
     this.#input = input;
+  }
+
+  /** @return {Number[]} */
+  inputPins() {
+    return [0];
+  }
+
+  /** @return {Number[]} */
+  outputPins() {
+    return [1];
   }
 
   /** @return {Number} */
@@ -198,57 +280,6 @@ export class Buffer extends Part {
   /** @arg {Part} input - New input. */
   setInput(input) {
     this.#input = input;
-  }
-}
-
-export class Wire extends Part {
-  /** @type {Part} */
-  #input;
-
-  /** @type {String} */
-  #color;
-
-  /**
-   * @arg {Part} input - Input.
-   * @arg {String} color - Wire color.
-   */
-  constructor(input, color) {
-    super(0, 0, 0);
-    this.#input = input;
-    this.#color = color;
-  }
-
-  /** @return {Number} */
-  output() {
-    return this.#input.output();
-  }
-
-  /** @return {String} */
-  get name() {
-    return 'Wire';
-  }
-
-  /**
-   * @arg {CanvasRenderingContext2D} ctx - Canvas context.
-   * @arg {DOMHighResTimeStamp} _delta - Time delta for animations.
-   * @arg {DrawOptions} options - Drawing options.
-   */
-  draw(ctx, _delta, options) {
-    ctx.save();
-    ctx.strokeStyle = this.#color;
-    ctx.lineWidth = 10;
-
-    ctx.beginPath();
-    const start = options.inputs[0];
-    ctx.moveTo(start.x, start.y);
-    const end = options.outputs[0];
-    ctx.bezierCurveTo(start.x + 10, start.y, end.x - 10, end.y, end.x, end.y); // TODO
-    ctx.closePath();
-
-    ctx.stroke();
-    ctx.restore();
-
-    throw new Error('TODO');
   }
 }
 
@@ -313,6 +344,16 @@ class Gate extends Part {
     super(pins, GRID_SIZE * pins, GRID_SIZE);
     this.a = a;
     this.b = b;
+  }
+
+  /** @return {Number[]} */
+  inputPins() {
+    return [0, 1];
+  }
+
+  /** @return {Number[]} */
+  outputPins() {
+    return [2];
   }
 
   /** @arg {Part} input - New input. */
@@ -425,6 +466,16 @@ class InvertedGate extends Part {
     const pins = 3;
     super(pins, GRID_SIZE * pins, GRID_SIZE);
     this.input = new Inverter(gate);
+  }
+
+  /** @return {Number[]} */
+  inputPins() {
+    return [0, 1];
+  }
+
+  /** @return {Number[]} */
+  outputPins() {
+    return [2];
   }
 }
 

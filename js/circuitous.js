@@ -1,8 +1,6 @@
-import { Board, Trace } from './board.js';
+import { Board } from './board.js';
 import { GRID_SIZE } from './consts.js';
-import { Graph } from './graph.js';
 import { Gui } from './gui.js';
-import { Part } from './parts.js';
 import { $, Debounce } from './utils.js';
 
 export class Circuitous {
@@ -14,9 +12,6 @@ export class Circuitous {
 
   /** @type {Board} */
   #board;
-
-  /** @type {Graph<Part, Trace>} */
-  #graph;
 
   /** @type {Boolean} */
   #repaint;
@@ -39,8 +34,7 @@ export class Circuitous {
     }
 
     this.#board = new Board();
-    this.#gui = new Gui(canvas, this.#board, this.#requestRepaint.bind(this));
-    this.#graph = new Graph();
+    this.#gui = new Gui(this.#board, this.#requestRepaint.bind(this), this.#setCursor.bind(this));
 
     const debounce_resize = new Debounce(this.#resize.bind(this), 100);
     window.addEventListener('resize', debounce_resize.call.bind(debounce_resize));
@@ -101,5 +95,10 @@ export class Circuitous {
 
   #requestRepaint() {
     this.#repaint = true;
+  }
+
+  /** @arg {String} cursor - Name of CSS cursor to apply to the canvas. */
+  #setCursor(cursor) {
+    this.#ctx.canvas.style.cursor = cursor;
   }
 }

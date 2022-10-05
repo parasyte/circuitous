@@ -14,22 +14,46 @@ export class SnapPoint extends DOMPoint {
   /** @type {Number} */
   col;
 
-  /** @type {Number} */
+  /** @type {String} */
   row;
 
   /**
+   * @arg {Number} col - Pin column number (zero-based).
+   * @arg {Number} row - Pin row number (zero-based).
+   * @arg {Number} type - See `SNAP_TYPE_*` constants.
    * @arg {Number} x - Snap point X coordinate in screen pixels.
    * @arg {Number} y - Snap point Y coordinate in screen pixels.
-   * @arg {Number} type - See `SNAP_TYPE_*` exports.
-   * @arg {Number} col - Pin column number.
-   * @arg {Number} row - Pin row number.
    */
-  constructor(x, y, type, col, row) {
+  constructor(col, row, type, x=0, y=0) {
     super(x, y);
 
+    this.col = col + 1;
+    this.row = String.fromCharCode('a'.charCodeAt(0) + row);
     this.type = type;
-    this.col = col;
-    this.row = row;
+  }
+
+  /**
+   * @arg {String} id - Identifier to convert into a SnapPoint.
+   * @return {SnapPoint}
+   */
+  static fromId(id) {
+    const [col, row, type] = JSON.parse(id);
+    return new SnapPoint(col - 1, row.charCodeAt(0) - 'a'.charCodeAt(0), type);
+  }
+
+  /** @return {String} */
+  toId() {
+    return JSON.stringify([this.col, this.row, this.type], null, 0);
+  }
+
+  /** @return {Number} */
+  colNum() {
+    return this.col - 1;
+  }
+
+  /** @return {Number} */
+  rowNum() {
+    return this.row.charCodeAt(0) - 'a'.charCodeAt(0);
   }
 }
 
@@ -53,8 +77,8 @@ export class Board {
   #power;
 
   /**
-   * @arg {Number | undefined} [width=60] - Board width in positions.
-   * @arg {Number | undefined} [height=10] - Board width in positions.
+   * @arg {Number | undefined} [width=60] - Board width in pin positions.
+   * @arg {Number | undefined} [height=10] - Board height in pin positions.
    */
   constructor(width, height) {
     this.width = width || 60;
@@ -185,6 +209,48 @@ export class Board {
   }
 
   /**
+   * @arg {Part} part - Part to add.
+   * @arg {SnapPoint} snap - Where to add it.
+   */
+  addPart(part, snap) {
+    this.#parts[snap.rowNum()][snap.colNum()] = part;
+
+    // Add the part to all traces
+    for (let x = 0; x < part.pins; x++) {
+      if (snap.type === SNAP_BOARD) {
+        const nextSnap = new SnapPoint(snap.colNum() + x, snap.rowNum(), snap.type);
+        const trace = this.#traceFromSnap(nextSnap);
+
+        trace.addPart(part, nextSnap.rowNum());
+      } else {
+        throw new Error('TODO: Power rails');
+      }
+    }
+  }
+
+  /**
+   * @arg {Part} part - Part that wants to be added.
+   * @arg {SnapPoint} snap - Where it wants to go.
+   * @return {Boolean}
+   */
+  partOverlaps(part, snap) {
+    if (snap.type === SNAP_BOARD) {
+      for (let x = 0; x < part.pins; x++) {
+        const point = new SnapPoint(snap.colNum() + x, snap.rowNum(), snap.type);
+        const trace = this.#traceFromSnap(point);
+
+        if (trace.hasPartAt(point.rowNum())) {
+          return true;
+        }
+      }
+
+      return false;
+    } else {
+      throw new Error('TODO: Power rails');
+    }
+  }
+
+  /**
    * @arg {Part} part - Part to be snapped to the grid.
    * @arg {Number} x - X coordinate in screen pixels.
    * @arg {Number} y - Y coordinate in screen pixels.
@@ -240,7 +306,23 @@ export class Board {
     }
 
     // Compute snapping point
-    return new SnapPoint(x, y, type, col, row);
+    return new SnapPoint(col, row, type, x, y);
+  }
+
+  /**
+   * @arg {SnapPoint} snap - A pin location on the trace.
+   * @return {Trace}
+   */
+  #traceFromSnap(snap) {
+    if (snap.type === SNAP_BOARD) {
+      // Traces are interleaved such that rows `[a,e]` have even indices
+      // and rows `[f,j]` have odd indices.
+      const idx = snap.colNum() * 2 + (snap.rowNum() >= this.height / 2 ? 1 : 0);
+
+      return this.#traces[idx];
+    } else {
+      throw new Error('TODO: Power rails');
+    }
   }
 }
 
@@ -387,6 +469,9 @@ export class Trace {
   /** @type {String} */
   #color;
 
+  /** @type {(Part | null)[]} */
+  #parts;
+
   /**
    * @arg {Number} pins - Number of pins in the trace.
    * @arg {Number} dir - Trace direction (See `DIRECTION_*` constants).
@@ -396,6 +481,8 @@ export class Trace {
     this.#pins = pins;
     this.#dir = dir;
     this.#color = color;
+
+    this.#parts = Array.from(new Array(pins), () => null);
   }
 
   /**
@@ -421,5 +508,25 @@ export class Trace {
     ctx.lineTo(x, y);
     ctx.closePath();
     ctx.stroke();
+  }
+
+  /**
+   * @arg {Number} idx - Pin number to check.
+   * @return {Boolean}
+   */
+  hasPartAt(idx) {
+    if (this.#parts[idx]) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * @arg {Part} part - Part to add.
+   * @arg {Number} idx - Where to add it.
+   */
+  addPart(part, idx) {
+    this.#parts[idx] = part;
   }
 }
