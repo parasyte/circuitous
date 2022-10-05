@@ -221,7 +221,7 @@ export class Board {
         const nextSnap = new SnapPoint(snap.colNum() + x, snap.rowNum(), snap.type);
         const trace = this.#traceFromSnap(nextSnap);
 
-        trace.addPart(part, nextSnap.rowNum());
+        trace.addPart(nextSnap.rowNum(), part, x);
       } else {
         throw new Error('TODO: Power rails');
       }
@@ -236,10 +236,32 @@ export class Board {
   partOverlaps(part, snap) {
     if (snap.type === SNAP_BOARD) {
       for (let x = 0; x < part.pins; x++) {
-        const point = new SnapPoint(snap.colNum() + x, snap.rowNum(), snap.type);
-        const trace = this.#traceFromSnap(point);
+        const nextSnap = new SnapPoint(snap.colNum() + x, snap.rowNum(), snap.type);
+        const trace = this.#traceFromSnap(nextSnap);
 
-        if (trace.hasPartAt(point.rowNum())) {
+        if (trace.hasPartAt(nextSnap.rowNum())) {
+          return true;
+        }
+      }
+
+      return false;
+    } else {
+      throw new Error('TODO: Power rails');
+    }
+  }
+
+  /**
+   * @arg {Part} part - Part that wants to be added.
+   * @arg {SnapPoint} snap - Where it wants to go.
+   * @return {Boolean}
+   */
+  partOutputConflicts(part, snap) {
+    if (snap.type === SNAP_BOARD) {
+      for (const pin of part.outputPins()) {
+        const nextSnap = new SnapPoint(snap.colNum() + pin, snap.rowNum(), snap.type);
+        const trace = this.#traceFromSnap(nextSnap);
+
+        if (trace.output()) {
           return true;
         }
       }
@@ -469,7 +491,7 @@ export class Trace {
   /** @type {String} */
   #color;
 
-  /** @type {(Part | null)[]} */
+  /** @type {([Part, Number] | null)[]} */
   #parts;
 
   /**
@@ -523,10 +545,26 @@ export class Trace {
   }
 
   /**
-   * @arg {Part} part - Part to add.
    * @arg {Number} idx - Where to add it.
+   * @arg {Part} part - Part to add.
+   * @arg {Number} pin - Pin number on the part.
    */
-  addPart(part, idx) {
-    this.#parts[idx] = part;
+  addPart(idx, part, pin) {
+    this.#parts[idx] = [part, pin];
+  }
+
+  /**
+   * @return {Part | void}
+   */
+  output() {
+    for (const entry of this.#parts) {
+      if (entry) {
+        const [part, pin] = entry;
+
+        if (part.outputPins().indexOf(pin) >= 0) {
+          return part;
+        }
+      }
+    }
   }
 }

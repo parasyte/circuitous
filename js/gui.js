@@ -252,12 +252,10 @@ export class Gui {
       return false;
     }
 
-    // TODO: Ensure the outputs are not going to connect to other outputs
-    //
-    // I think what I want here is a method on `Trace` that returns a `Part` reference
-    // if any part has an output connected to that trace.
-    //
-    // I should be able to reuse that for `this.#drop()` to get inputs.
+    // Ensure the outputs are not going to connect to other outputs
+    if (this.#board.partOutputConflicts(part, snap)) {
+      return false;
+    }
 
     return true;
   }
