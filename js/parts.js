@@ -221,6 +221,11 @@ export class Wire extends Part {
 
     throw new Error('TODO');
   }
+
+  /** @arg {Part} input - New input. */
+  setInput(input) {
+    this.#input = input;
+  }
 }
 
 export class Buffer extends Part {
@@ -456,16 +461,30 @@ export class Xor extends Gate {
 }
 
 class InvertedGate extends Part {
+  /** @type {typeof Gate} */
+  #Gate;
+
   /** @type {Part} */
+  #a;
+
+  /** @type {Part} */
+  #b;
+
+  /** @type {Inverter} */
   input;
 
   /**
-   * @arg {Part} gate - Gate to be inverted.
+   * @arg {typeof Gate} gate - Gate to be inverted.
+   * @arg {Part} a - First input.
+   * @arg {Part} b - Second input.
    */
-  constructor(gate) {
+  constructor(gate, a, b) {
     const pins = 3;
     super(pins, GRID_SIZE * pins, GRID_SIZE);
-    this.input = new Inverter(gate);
+    this.#Gate = gate;
+    this.#a = a;
+    this.#b = b;
+    this.input = new Inverter(new this.#Gate(a, b));
   }
 
   /** @return {Number[]} */
@@ -477,6 +496,18 @@ class InvertedGate extends Part {
   outputPins() {
     return [2];
   }
+
+  /** @arg {Part} input - New input. */
+  setInputA(input) {
+    this.input.setInput(new this.#Gate(input, this.#b));
+    this.#a = input;
+  }
+
+  /** @arg {Part} input - New input. */
+  setInputB(input) {
+    this.input.setInput(new this.#Gate(this.#a, input));
+    this.#b = input;
+  }
 }
 
 export class Nand extends InvertedGate {
@@ -485,7 +516,7 @@ export class Nand extends InvertedGate {
    * @arg {Part} b - Second input.
    */
   constructor(a, b) {
-    super(new And(a, b));
+    super(And, a, b);
   }
 
   /** @return {Number} */
@@ -534,7 +565,7 @@ export class Nor extends InvertedGate {
    * @arg {Part} b - Second input.
    */
   constructor(a, b) {
-    super(new Or(a, b));
+    super(Or, a, b);
   }
 
   /** @return {Number} */
@@ -583,7 +614,7 @@ export class Xnor extends InvertedGate {
    * @arg {Part} b - Second input.
    */
   constructor(a, b) {
-    super(new Xor(a, b));
+    super(Xor, a, b);
   }
 
   /** @return {Number} */
@@ -622,5 +653,30 @@ export class Switch extends Gate {
 
   toggle() {
     this.#state = !this.#state;
+  }
+}
+
+/**
+ * @arg {Part} to - Part with input.
+ * @arg {Number} toPin - Pin number for input.
+ * @arg {Part} from - Part with output.
+ */
+export function connectParts(to, toPin, from) {
+  if (to instanceof Wire) {
+    to.setInput(from);
+  } else if (to instanceof Buffer) {
+    to.setInput(from);
+  } else if (to instanceof Gate) {
+    if (to.inputPins().indexOf(toPin) === 0) {
+      to.setInputA(from);
+    } else {
+      to.setInputB(from);
+    }
+  } else if (to instanceof InvertedGate) {
+    if (to.inputPins().indexOf(toPin) === 0) {
+      to.setInputA(from);
+    } else {
+      to.setInputB(from);
+    }
   }
 }

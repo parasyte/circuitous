@@ -216,7 +216,7 @@ export class Gui {
       if (snap && this.#isValidConnection(part, snap)) {
         /** @type Part */
         let part;
-        // TODO: Get part inputs
+        // TODO: This must be synchronized with the GUI constructor
         switch (this.#hit) {
         case 0:
           part = new Inverter(new HighZ());

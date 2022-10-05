@@ -3,7 +3,7 @@ import {
   DIRECTION_HORIZONTAL, DIRECTION_VERTICAL,
   SNAP_BOARD, SNAP_POWER_RAIL_1, SNAP_POWER_RAIL_2,
 } from './consts.js';
-import { Part, High, Low, Wire, DrawOptions } from './parts.js';
+import { Part, High, Low, Wire, DrawOptions, connectParts } from './parts.js';
 
 const RAIL_HEIGHT = 55;
 
@@ -261,7 +261,7 @@ export class Board {
         const nextSnap = new SnapPoint(snap.colNum() + pin, snap.rowNum(), snap.type);
         const trace = this.#traceFromSnap(nextSnap);
 
-        if (trace.output()) {
+        if (trace.hasOutput()) {
           return true;
         }
       }
@@ -550,21 +550,48 @@ export class Trace {
    * @arg {Number} pin - Pin number on the part.
    */
   addPart(idx, part, pin) {
+    // Connect all pins
+    // This establishes the circuit graph
+    for (const entry of this.#parts) {
+      if (entry) {
+        const [nextPart, nextPin] = entry;
+
+        if (part.outputPins().indexOf(pin) >= 0 && nextPart.inputPins().indexOf(nextPin) >= 0) {
+          connectParts(nextPart, nextPin, part);
+        } else if (part.inputPins().indexOf(pin) >= 0 && nextPart.outputPins().indexOf(nextPin) >= 0) {
+          connectParts(part, pin, nextPart);
+        }
+      }
+    }
+
+    // Add the part after pins have been connected
     this.#parts[idx] = [part, pin];
+
+    // TODO: Highlight traces to indicate logic level
+    //
+    // - Red: High
+    // - Blue: Low
+    // - Black?: High-Z
+    // - Gray: Unconnected
+    //
+    // To support High-Z, we either need to catch exceptions
+    // or change High-Z to output something like `NaN` and add `isNaN()` checks everywhere?
   }
 
   /**
-   * @return {Part | void}
+   * @return {Boolean}
    */
-  output() {
+  hasOutput() {
     for (const entry of this.#parts) {
       if (entry) {
         const [part, pin] = entry;
 
         if (part.outputPins().indexOf(pin) >= 0) {
-          return part;
+          return true;
         }
       }
     }
+
+    return false;
   }
 }
